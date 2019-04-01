@@ -4,8 +4,28 @@ This project allows to test a HCSR04 ultrasound sensor with a PSoC microcontroll
 The HCSR04 sensor is an ultrasound sensor that can be used to measure distances in the 
 range between 2 and 400 cm. You can find its datasheet [here](https://www.mouser.com/ds/2/813/HCSR04-1022824.pdf).
 
+## HCSR04 Basic Measurement Principle
+
 The timing diagram of the HCSR04 pins (Trigger and Echo) is shown in the following figure:
 ![Timing Diagram](https://docs.google.com/drawings/d/e/2PACX-1vR2Mx0T8Nu29KAHRe6r3gqZPM3-l6tjAJZlDajIW4KI_tnTk1SySEOoXJaWqJBsFwzoq2mZl7-9PS2W/pub?w=960&h=720)
+
+In order to measure the distance from the closest object, we can apply the following formulas:
+
+*d = v t* where *v* is sound velocity in air, *t* is the time of flight of the wave expressed in microseconds. 
+
+Sound propagation velocity in air is: *v = 331.4 + 0.62 T* where *T* is the temperature of the air. We consider
+a constant temperature of 20°C, so our eqaution can be rearranged as follows:
+
+*d = 343.3 t*
+
+Since the wave has to travel forward and backward, we need to divide the measured time by a factor of 2:
+
+*d = 171.65 t*
+
+Converting the factor to *cm/us*, we get to the final formula:
+
+*d = t/58.25*
+
 
 ## Included projects
 The project actually includes three different projects, each one with increased

@@ -13,3 +13,11 @@ In particular, we used the [CY8CKIT-059](https://www.cypress.com/documentation/d
 - [MPU9250](https://github.com/dado93/PSoC-Example-Projects/tree/master/MPU9250): project showing how to use the I2C communication protocol and to read accelerometer and gyroscope
 values from the MPU9250 IMU
 
+## Future projects:
+- ST HTS221
+- ST LPS25H
+- Sensirion SHT7x and SHT85
+- ADC measurements
+- DMA
+- UART
+
