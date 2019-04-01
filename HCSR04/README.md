@@ -5,7 +5,7 @@ The HCSR04 sensor is an ultrasound sensor that can be used to measure distances 
 range between 2 and 400 cm. You can find its datasheet [here](https://www.mouser.com/ds/2/813/HCSR04-1022824.pdf).
 
 The timing diagram of the HCSR04 pins (Trigger and Echo) is shown in the following figure:
-![Timing Diagram](C:\Users\Davide Marzorati\Desktop\2019-04-01 09_29_09-Window.png)
+![Timing Diagram](https://docs.google.com/drawings/d/e/2PACX-1vR2Mx0T8Nu29KAHRe6r3gqZPM3-l6tjAJZlDajIW4KI_tnTk1SySEOoXJaWqJBsFwzoq2mZl7-9PS2W/pub?w=960&h=720)
 
 ## Included projects
 The project actually includes three different projects, each one with increased
