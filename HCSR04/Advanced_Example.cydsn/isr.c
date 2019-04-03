@@ -15,10 +15,17 @@
 #include "ISR_HCSR04.h"
 
 /**
-* @brief Conversion factor from time to mm.
+* @brief Conversion factor from time to cm.
 */
 #ifndef CONV_FACTOR
     #define CONV_FACTOR 58.25
+#endif
+
+/**
+* @brief Conversion factor from cm to mm.
+*/
+#ifndef TO_MM
+    #define TO_MM 10.00
 #endif
 
 // Message to send over UART
@@ -37,7 +44,7 @@ void Custom_ISR_Start(void) {
 CY_ISR(ISR_ULTRASONIC){
     // Compute distance and send it over uart
     sprintf(message, "Distance: %d mm\r\n",
-        (int)((timer_period - Timer_HCSR04_ReadCapture())/58.0*10));
+        (int)((timer_period - Timer_HCSR04_ReadCapture())/CONV_FACTOR*TO_MM));
     UART_HC06_PutString(message);
 }
 /* [] END OF FILE */
