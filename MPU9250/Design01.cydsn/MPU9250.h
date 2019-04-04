@@ -141,6 +141,16 @@
     void MPU9250_ReadGyro(int16_t* gyro);
     
     /**
+    * @brief Read temperature.
+    *
+    * This function reads the temperature value.
+    * @param[out] temp: temperature value.
+    *
+    */
+    void MPU9250_ReadTemp(int16_t* temp);
+    
+    
+    /**
     * @brief Read accelerometer and gyroscope values.
     *
     * This function reads the accelerometer and gyroscope values on the three
@@ -159,7 +169,7 @@
     void MPU9250_ReadSelfTestAcc(uint8_t* self_test_acc);
     
     /**
-    * \brief Perform self test of accelerometer and gyroscope.
+    * @brief Perform self test of accelerometer and gyroscope.
     * 
     * This function performs a self test of the MPU9250. The returned values 
     * represent percent deviation from factory trim values. For a more detailed
@@ -173,21 +183,39 @@
     *
     */
     void MPU9250_SelfTestMag(float deviation);
+    
     /**
     * @brief Enable accelerometer.
     *
-    * Activate accelerometer updateds. See register #MPU9250_PWR_MGMT_1_REG.
+    * Activate accelerometer updates. See register #MPU9250_PWR_MGMT_2_REG.
     *
     */
     void MPU9250_EnableAcc(void);
     
-    
+    /**
+    * @brief Enable gyroscope.
+    *
+    * Activate gyroscope updates. See register #MPU9250_PWR_MGMT_2_REG.
+    *
+    */
     void MPU9250_EnableGyro(void);
     
     void MPU9250_EnableMag(void);
     
+    /**
+    * @brief Disable accelerometer.
+    *
+    * Disable accelerometer updates. See register #MPU9250_PWR_MGMT_2_REG.
+    *
+    */
     void MPU9250_DisableAcc(void);
     
+    /**
+    * @brief Disable gyroscope.
+    *
+    * Activate gyroscope updates. See register #MPU9250_PWR_MGMT_2_REG.
+    *
+    */
     void MPU9250_DisableGyro(void);
     
     void MPU9250_DisableMag(void);
@@ -245,6 +273,15 @@
     * SAMPLE RATE = Internal_Sample_Rate / ( 1 + SMPLRT_DIV)
     **/
     void MPU9250_SetSampleRateDivider(uint8_t smplrt);
+    
+    /**
+    * @brief Read accelerometer offset values.
+    *
+    * This function reads the accelerometer offset values on all the axis (x, y, and z).
+    * @param[out] acc_offset: array where the 3 offset values will be stored
+    **/
+    void MPU9250_ReadAccelerometerOffset(int16_t *acc_offset);
+    
     
 #endif
 

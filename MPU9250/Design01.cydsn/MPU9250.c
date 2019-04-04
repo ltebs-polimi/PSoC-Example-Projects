@@ -13,6 +13,8 @@
 #include "MPU9250_RegMap.h"
 #include "MPU9250_I2C.h"
 #include "math.h"
+#include "UART_1.h"
+#include "stdio.h"
 
 /* ========= MACROS ========= */
 #ifndef MPU9250_ACC_FS_MASK 
@@ -204,6 +206,9 @@ void MPU9250_SelfTest(float* deviation) {
         Acc[i]  /= 200;
         Gyro[i] /= 200;
     }
+    char message[50];
+    sprintf(message, "Avg: %5d %5d %5d -- %5d %5d %5d\r\n", Acc[0]*100, Acc[1]*100, Acc[2]*100, Gyro[0]*100, Gyro[1]*100, Gyro[2]*100);
+    UART_1_PutString(message);
     // Enable self test gyroscope
     temp = MPU9250_I2C_Read(MPU9250_I2C_ADDRESS, MPU9250_GYRO_CONFIG_REG);
     // Then, set bits [7,6,5]
@@ -233,7 +238,8 @@ void MPU9250_SelfTest(float* deviation) {
         ST_Acc[i]  /= 200;
         ST_Gyro[i] /= 200;
     }
-    
+    sprintf(message, "STg: %5d %5d %5d -- %5d %5d %5d\r\n", ST_Acc[0]*100, ST_Acc[1]*100, ST_Acc[2]*100, ST_Gyro[0]*100, ST_Gyro[1]*100, ST_Gyro[2]*100);
+    UART_1_PutString(message);
     // Disable self test gyroscope -- Read config register
     temp = MPU9250_I2C_Read(MPU9250_I2C_ADDRESS, MPU9250_GYRO_CONFIG_REG);
     // Clear bits [7,6,5]
@@ -279,8 +285,9 @@ void MPU9250_SelfTest(float* deviation) {
     Factory_Trim[5] = (float) ( ( 2620 / 1 << MPU9250_Acc_FS_2g) * pow( 1.01, ST_GyroStored[2] - 1.0) );
     
     // Compute deviation
-    for (int i = 0; i < 6; i++) {
-        deviation[i] = 100.0 * ((float) (ST_Response[i])) / Factory_Trim[i] - 100;
+    for (int i = 0; i < 3; i++) {
+        deviation[i] = 100.0 * ((float) (ST_Response[i] - Acc[i])) / Factory_Trim[i] - 100;
+        deviation[i+3] = 100.0 * ((float) (ST_Response[i] - Gyro[i+3])) / Factory_Trim[i] - 100;
     }
 }
 
@@ -349,6 +356,15 @@ MPU9250_Gyro_FS MPU9250_GetGyroFS(void) {
 
 void MPU9250_SetSampleRateDivider(uint8_t smplrt) {
     MPU9250_I2C_Write(MPU9250_I2C_ADDRESS, MPU9250_SMPLRT_DIV_REG, smplrt);
+}
+
+void MPU9250_ReadAccelerometerOffset(int16_t *acc_offset) {
+    // Get the accelerometer offset values
+    uint8_t temp[6] = {'\0'};
+    MPU9250_I2C_ReadMulti(MPU9250_I2C_ADDRESS, MPU9250_XA_OFFSET_H_REG, temp, 6);
+    acc_offset[0] = (temp[0] << 8) | (temp[1] & 0xFF);
+    acc_offset[0] = (temp[2] << 8) | (temp[3] & 0xFF);
+    acc_offset[0] = (temp[4] << 8) | (temp[5] & 0xFF);
 }
 
 /* [] END OF FILE */

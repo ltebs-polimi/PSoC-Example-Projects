@@ -1,3 +1,4 @@
+
 /*
  * @brief Function definitions for MPU9250 I2C communication.
  *
@@ -39,7 +40,7 @@
 #endif
 
 /**
-* @brief   0 bit for response with acknowledgment.
+* @brief   1 bit for response with acknowledgment.
 *    
 */
 #ifndef MPU9250_ACK
@@ -56,6 +57,7 @@ uint8_t MPU9250_I2C_Read(uint8_t address, uint8_t reg) {
             - Read byte without acknowledgement
             - Send stop
     */
+    
     I2C_MPU9250_Master_MasterSendStart(address,MPU9250_WRITE);
     I2C_MPU9250_Master_MasterWriteByte(reg);
 	I2C_MPU9250_Master_MasterSendStop();
