@@ -43,7 +43,8 @@ void MPU9250_Start(void) {
     // Check if the I2C component has already been started,
     // otherwise start it.
     if (!I2C_MPU9250_Master_initVar) {
-        I2C_MPU9250_Master_Start(); 
+        I2C_MPU9250_Master_Start();
+        CyDelay(10);
     }
     
     // Wake up MPU9250

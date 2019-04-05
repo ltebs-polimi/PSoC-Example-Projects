@@ -21,14 +21,17 @@ int main(void)
     CyGlobalIntEnable; /* Enable global interrupts. */
 
     /* Place your initialization/startup code here (e.g. MyInst_Start()) */
-    MPU9250_Start();
-    UART_1_Start();
-    CyDelay(1000);
     char message[30];
-    
+    UART_1_Start();
+
     UART_1_PutString("**************\r\n");
     UART_1_PutString("    MPU9250   \r\n");
     UART_1_PutString("**************\r\n");
+    
+    
+    I2C_MPU9250_Master_Start();
+    
+    CyDelay(1000);
     
     for (int address = 0; address < 128; address++) {
         if (I2C_MPU9250_Master_MasterSendStart(address, 0) == I2C_MPU9250_Master_MSTR_NO_ERROR) {
@@ -37,6 +40,8 @@ int main(void)
         }
         I2C_MPU9250_Master_MasterSendStop();
     }
+    
+    MPU9250_Start();
     
     uint8_t connection = MPU9250_IsConnected();
     if (connection == 0) {
