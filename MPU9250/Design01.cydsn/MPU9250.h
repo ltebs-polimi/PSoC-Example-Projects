@@ -131,6 +131,16 @@
     void MPU9250_ReadAcc(int16_t* acc);
     
     /**
+    * @brief Read accelerometer raw values.
+    *
+    * This function reads the accelerometer values on the three
+    * axis (x, y, and z) and returns the raw values. 
+    * @param[out] acc: accelerometer values (xH, xL, yH, yL, zH, zL).
+    *
+    */
+    void MPU9250_ReadAccRaw(uint8_t* acc);
+    
+    /**
     * @brief Read gyroscope values.
     *
     * This function reads the gyroscope values on the three
@@ -139,6 +149,16 @@
     *
     */
     void MPU9250_ReadGyro(int16_t* gyro);
+    
+    /**
+    * @brief Read gyroscope raw values.
+    *
+    * This function reads the gyroscope values on the three
+    * axis (x, y, and z) and returns the raw values. 
+    * @param[out] gyro: gyroscope raw values (xH, xL, yH, yL, zH, zL).
+    *
+    */
+    void MPU9250_ReadGyroRaw(uint8_t* gyro);
     
     /**
     * @brief Read temperature.
@@ -160,6 +180,16 @@
     *
     */
     void MPU9250_ReadAccGyro(int16_t* acc, int16_t* gyro);
+    
+    /**
+    * @brief Read accelerometer and gyroscope raw values.
+    *
+    * This function reads the accelerometer and gyroscope values on the three
+    * axis (x, y, and z). 
+    * @param[out] data: accelerometer and gyro raw values (xH, xL, yH, yL, zH, zL).
+    *
+    */
+    void MPU9250_ReadAccGyroRaw(uint8_t* data);
     
     /*
     void MPU9250_ReadMag(void);
@@ -282,6 +312,133 @@
     **/
     void MPU9250_ReadAccelerometerOffset(int16_t *acc_offset);
     
+    /**
+    * @brief Enable interrupt on raw sensor data ready.
+    *
+    * This function eables raw sensor data ready interrupt to propagate to interrupt
+    * pin. The timing of the interrupt can vary depending on the setting in register
+    * 36 #I2C_MST_CTRL , bit[6] WAIT_FOR_ES
+    **/
+    void MPU9250_EnableRawDataInterrupt(void);
+    
+    /**
+    * @brief Disable interrupt on raw sensor data ready.
+    **/
+    void MPU9250_DisableRawDataInterrupt(void);
+    
+    /**
+    * @brief Enable Fsync interrupt to propagate to interrupt pin.
+    */
+    void MPU9250_EnableFsyncInterrupt(void);
+    
+    /**
+    * @brief Disbale Fsync interrupt to propagate to interrupt pin.
+    */
+    void MPU9250_DisableFsyncInterrupt(void);
+    
+    /**
+    * @brief Enable interrupt for fifo overflow to propagate to interrupt pin.
+    */
+    void MPU9250_EnableFifoOverflowInterrupt(void);
+    
+     /**
+    * @brief Disable interrupt for fifo overflow to propagate to interrupt pin.
+    */
+    void MPU9250_DisableFifoOverflowInterrupt(void);
+    
+    /**
+    * @brief Enable interrupt for wake on motion to propagate to interrupt pin.
+    */
+    void MPU9250_EnableWomInterrupt(void);
+    
+    /**
+    * @brief Disable interrupt for wake on motion to propagate to interrupt pin.
+    */
+    void MPU9250_DisableWomInterrupt(void);
+    
+    /**
+    * @brief Read interrupt status register.
+    * 
+    * This function reads the interrupt status register. For additional information
+    * check register #MPU9250_INT_STATUS_REG
+    * @return value of the interrupt status register.
+    */
+    uint8_t MPU9250_ReadInterruptStatus(void);
+    
+    
+    /**
+    * @brief Set interrupt pin as active high.
+    *
+    * This function sets the interrupt logic level as active high.
+    */
+    void MPU9250_SetInterruptActiveHigh(void);
+    
+    /**
+    * @brief Set interrupt pin as active low.
+    *
+    * This function sets the interrupt logic low as active high.
+    */
+    void MPU9250_SetInterruptActiveLow(void);
+    
+    /**
+    * @brief Set interrupt pin as open drain.
+    *
+    * This function sets the interrupt pin in open drain configuration.
+    */
+    void MPU9250_SetInterruptOpenDrain(void);
+    
+    /**
+    * @brief Set interrupt pin as push pull.
+    *
+    * This function sets the interrupt pin in push - pull configuration.
+    */
+    void MPU9250_SetInterruptPushPull(void);
+    
+    /**
+    * @brief Enable I2C bypass.
+    *
+    * This function enable the I2C bypass. This way, the I2C master interface pins
+    * will go into bypass mode when the I2C master interface is disabled. This pins 
+    * will float high due to the internal pull-up if not enabled and the I2C 
+    * master interface is disabled.
+    */
+    void MPU9250_EnableI2CBypass(void);
+    
+    /**
+    * @brief Disable I2C bypass.
+    *
+    */
+    void MPU9250_DisableI2CBypass(void);
+    
+    /**
+    * @brief Held interrupt pin until interrupt status is cleared.
+    *
+    * This function sets up the interrupt to be held until the interrupt status is cleared.
+    */
+    void MPU9250_HeldInterruptPin(void);
+    
+    /**
+    * @brief Interrupt pin pulse.
+    *
+    * This function sets up the interrupt to a 50 us pulse.
+    */
+    void MPU9250_InterruptPinPulse(void);
+    
+    /**
+    * @brief Clear interrupt on any read operation.
+    *
+    * This function enables the interrupt to be cleared when any read operation is
+    * performed.
+    */
+    void MPU9250_ClearInterruptAny(void);
+    
+    /**
+    * @brief Clear interrupt only when reading status register.
+    *
+    * This function enables the interrupt to be cleared only when the status register
+    * is read.
+    */
+    void MPU9250_ClearInterruptStatusReg(void);
     
 #endif
 

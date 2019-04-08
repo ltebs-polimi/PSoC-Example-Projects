@@ -55,8 +55,26 @@ void MPU9250_Start(void) {
     // Set up defaul gyroscope full scale range
     MPU9250_SetGyroFS(MPU9250_Gyro_FS_250);
     
-    MPU9250_I2C_Write(MPU9250_I2C_ADDRESS, MPU9250_INT_PIN_CFG_REG, 0x22);
-    MPU9250_I2C_Write(MPU9250_I2C_ADDRESS, MPU9250_INT_ENABLE_REG, 0x01);
+    // Set up sample rate divider
+    MPU9250_SetSampleRateDivider(4); // From 1kHz to 200 Hz sampling
+    
+    // Set up gyroscope, temperature digital low pass filter
+    MPU9250_I2C_Write(MPU9250_I2C_ADDRESS, MPU9250_CONFIG_REG, 0x03);
+    
+    // Set up accelerometer digital low pass filter
+    MPU9250_I2C_Write(MPU9250_I2C_ADDRESS, MPU9250_ACCEL_CONFIG_2_REG, 0x03);
+    
+    // Configure interrupt
+    MPU9250_SetInterruptActiveHigh();
+    MPU9250_SetInterruptPushPull();
+    MPU9250_HeldInterruptPin();
+    MPU9250_ClearInterruptStatusReg();
+    MPU9250_EnableI2CBypass();
+    
+    MPU9250_EnableRawDataInterrupt();
+    MPU9250_DisableFifoOverflowInterrupt();
+    MPU9250_DisableWomInterrupt();
+    MPU9250_DisableFsyncInterrupt();    
 }
 
 void MPU9250_Sleep(void) {
@@ -78,6 +96,7 @@ void MPU9250_WakeUp(void) {
 uint8_t MPU9250_IsConnected(void) {
     // Checks if the MPU9250 is present on the I2C bus
     uint8_t err = I2C_MPU9250_Master_MasterSendStart(MPU9250_I2C_ADDRESS, 0);
+    I2C_MPU9250_Master_MasterSendStop();
     if (err > 0)
         return 0;
     // Then also check if the value contained in the who am i register is the expected one
@@ -106,6 +125,13 @@ void MPU9250_ReadAcc(int16_t* acc) {
     acc[2] = (temp[4] << 8) | (temp[5] & 0xFF);
 }
 
+void MPU9250_ReadAccRaw(uint8_t* acc) {
+    // We can read 6 consecutive bytes since the accelerometer registers are in order
+    
+    // Read data via I2C
+    MPU9250_I2C_ReadMulti(MPU9250_I2C_ADDRESS, MPU9250_ACCEL_XOUT_H_REG, acc, 6);
+}
+
 void MPU9250_ReadGyro(int16_t* gyro) {
     // We can read 6 consecutive bytes since the gyroscope registers are in order
     
@@ -116,6 +142,13 @@ void MPU9250_ReadGyro(int16_t* gyro) {
     gyro[0] = (temp[0] << 8) | (temp[1] & 0xFF);
     gyro[1] = (temp[2] << 8) | (temp[3] & 0xFF);
     gyro[2] = (temp[4] << 8) | (temp[5] & 0xFF);
+}
+
+void MPU9250_ReadGyroRaw(uint8_t* gyro) {
+    // We can read 6 consecutive bytes since the gyroscope registers are in order
+    
+    // Read data via I2C
+    MPU9250_I2C_ReadMulti(MPU9250_I2C_ADDRESS, MPU9250_GYRO_XOUT_H_REG, gyro, 6);
 }
 
 void MPU9250_ReadAccGyro(int16_t* acc, int16_t* gyro) {
@@ -132,6 +165,13 @@ void MPU9250_ReadAccGyro(int16_t* acc, int16_t* gyro) {
     gyro[0] = (temp[8] << 8) | (temp[9] & 0xFF);
     gyro[1] = (temp[10] << 8) | (temp[11] & 0xFF);
     gyro[2] = (temp[12] << 8) | (temp[13] & 0xFF);
+}
+
+void MPU9250_ReadAccGyroRaw(uint8_t* data) {
+
+    // Read data via I2C
+    MPU9250_I2C_ReadMulti(MPU9250_I2C_ADDRESS, MPU9250_ACCEL_XOUT_H_REG, data, 6);
+    MPU9250_I2C_ReadMulti(MPU9250_I2C_ADDRESS, MPU9250_GYRO_XOUT_H_REG, data + 6, 6);
 }
 
 void MPU9250_ReadSelfTestGyro(uint8_t* self_test_gyro) {
@@ -367,4 +407,187 @@ void MPU9250_ReadAccelerometerOffset(int16_t *acc_offset) {
     acc_offset[0] = (temp[4] << 8) | (temp[5] & 0xFF);
 }
 
+void MPU9250_EnableRawDataInterrupt(void) {
+    // Set bit [0] of MPU9250_INT_EN_REG
+    // Read current value
+    uint8_t temp = MPU9250_I2C_Read(MPU9250_I2C_ADDRESS, MPU9250_INT_ENABLE_REG);
+    // Set bit[0]
+    temp |= 0x01;
+    // Write new value
+    MPU9250_I2C_Write(MPU9250_I2C_ADDRESS, MPU9250_INT_ENABLE_REG, temp);
+}
+
+void MPU9250_DisableRawDataInterrupt(void) {
+    // Clear bit [0] of MPU9250_INT_EN_REG
+    // Read current value
+    uint8_t temp = MPU9250_I2C_Read(MPU9250_I2C_ADDRESS, MPU9250_INT_ENABLE_REG);
+    // Clear bit[0]
+    temp &= ~0x01;
+    // Write new value
+    MPU9250_I2C_Write(MPU9250_I2C_ADDRESS, MPU9250_INT_ENABLE_REG, temp);
+}
+
+void MPU9250_EnableFsyncInterrupt(void) {
+    // Set bit [3] of MPU9250_INT_EN_REG
+    // Read current value
+    uint8_t temp = MPU9250_I2C_Read(MPU9250_I2C_ADDRESS, MPU9250_INT_ENABLE_REG);
+    // Set bit[3]
+    temp |= 0x08;
+    // Write new value
+    MPU9250_I2C_Write(MPU9250_I2C_ADDRESS, MPU9250_INT_ENABLE_REG, temp);
+}
+
+void MPU9250_DisableFsyncInterrupt(void) {
+    // Clear bit [3] of MPU9250_INT_EN_REG
+    // Read current value
+    uint8_t temp = MPU9250_I2C_Read(MPU9250_I2C_ADDRESS, MPU9250_INT_ENABLE_REG);
+    // Clear bit[3]
+    temp &= ~0x08;
+    // Write new value
+    MPU9250_I2C_Write(MPU9250_I2C_ADDRESS, MPU9250_INT_ENABLE_REG, temp);
+}
+
+void MPU9250_EnableFifoOverflowInterrupt(void) {
+    // Set bit [4] of MPU9250_INT_EN_REG
+    // Read current value
+    uint8_t temp = MPU9250_I2C_Read(MPU9250_I2C_ADDRESS, MPU9250_INT_ENABLE_REG);
+    // Set bit[4]
+    temp |= 0x10;
+    // Write new value
+    MPU9250_I2C_Write(MPU9250_I2C_ADDRESS, MPU9250_INT_ENABLE_REG, temp);
+}
+
+void MPU9250_DisableFifoOverflowInterrupt(void) {
+    // Clear bit [4] of MPU9250_INT_EN_REG
+    // Read current value
+    uint8_t temp = MPU9250_I2C_Read(MPU9250_I2C_ADDRESS, MPU9250_INT_ENABLE_REG);
+    // Clear bit[4]
+    temp &= ~0x10;
+    // Write new value
+    MPU9250_I2C_Write(MPU9250_I2C_ADDRESS, MPU9250_INT_ENABLE_REG, temp);
+}
+
+void MPU9250_EnableWomInterrupt(void) {
+    // Set bit [6] of MPU9250_INT_EN_REG
+    // Read current value
+    uint8_t temp = MPU9250_I2C_Read(MPU9250_I2C_ADDRESS, MPU9250_INT_ENABLE_REG);
+    // Set bit[6]
+    temp |= 0x40;
+    // Write new value
+    MPU9250_I2C_Write(MPU9250_I2C_ADDRESS, MPU9250_INT_ENABLE_REG, temp);
+}
+
+void MPU9250_DisableWomInterrupt(void) {
+    // Clear bit [6] of MPU9250_INT_EN_REG
+    // Read current value
+    uint8_t temp = MPU9250_I2C_Read(MPU9250_I2C_ADDRESS, MPU9250_INT_ENABLE_REG);
+    // Clear bit[6]
+    temp &= ~0x40;
+    // Write new value
+    MPU9250_I2C_Write(MPU9250_I2C_ADDRESS, MPU9250_INT_ENABLE_REG, temp);
+}
+
+uint8_t MPU9250_ReadInterruptStatus(void) {
+    return MPU9250_I2C_Read(MPU9250_I2C_ADDRESS, MPU9250_INT_STATUS_REG);
+}
+
+void MPU9250_SetInterruptActiveHigh(void) {
+    // Clear bit [7] of MPU9250_INT_PIN_CFG_REG
+    // Read current value
+    uint8_t temp = MPU9250_I2C_Read(MPU9250_I2C_ADDRESS, MPU9250_INT_ENABLE_REG);
+    // Clear bit[7]
+    temp &= ~0x80;
+    // Write new value
+    MPU9250_I2C_Write(MPU9250_I2C_ADDRESS, MPU9250_INT_ENABLE_REG, temp);
+}
+
+void MPU9250_SetInterruptActiveLow(void) {
+    // Set bit [7] of MPU9250_INT_PIN_CFG_REG
+    // Read current value
+    uint8_t temp = MPU9250_I2C_Read(MPU9250_I2C_ADDRESS, MPU9250_INT_PIN_CFG_REG);
+    // Set bit[7]
+    temp |= 0x40;
+    // Write new value
+    MPU9250_I2C_Write(MPU9250_I2C_ADDRESS, MPU9250_INT_PIN_CFG_REG, temp);
+}
+
+void MPU9250_SetInterruptOpenDrain(void) {
+    // Clear bit [6] of MPU9250_INT_PIN_CFG_REG
+    // Read current value
+    uint8_t temp = MPU9250_I2C_Read(MPU9250_I2C_ADDRESS, MPU9250_INT_ENABLE_REG);
+    // Clear bit[6]
+    temp &= ~0x40;
+    // Write new value
+    MPU9250_I2C_Write(MPU9250_I2C_ADDRESS, MPU9250_INT_ENABLE_REG, temp);
+}
+
+void MPU9250_SetInterruptPushPull(void) {
+    // Set bit [6] of MPU9250_INT_PIN_CFG_REG
+    // Read current value
+    uint8_t temp = MPU9250_I2C_Read(MPU9250_I2C_ADDRESS, MPU9250_INT_PIN_CFG_REG);
+    // Set bit[6]
+    temp |= 0x40;
+    // Write new value
+    MPU9250_I2C_Write(MPU9250_I2C_ADDRESS, MPU9250_INT_PIN_CFG_REG, temp);
+}
+
+void MPU9250_HeldInterruptPin(void) {
+    // Set bit[5] of MPU9250_INT_PIN_CFG_REG
+    // Read current value
+    uint8_t temp = MPU9250_I2C_Read(MPU9250_I2C_ADDRESS, MPU9250_INT_PIN_CFG_REG);
+    // Set bit[5]
+    temp |= 0x20;
+    // Write new value
+    MPU9250_I2C_Write(MPU9250_I2C_ADDRESS, MPU9250_INT_PIN_CFG_REG, temp);
+}
+    
+void MPU9250_InterruptPinPulse(void) {
+    // Clear bit [5] of MPU9250_INT_PIN_CFG_REG
+    // Read current value
+    uint8_t temp = MPU9250_I2C_Read(MPU9250_I2C_ADDRESS, MPU9250_INT_ENABLE_REG);
+    // Clear bit[5]
+    temp &= ~0x20;
+    // Write new value
+    MPU9250_I2C_Write(MPU9250_I2C_ADDRESS, MPU9250_INT_ENABLE_REG, temp);   
+}
+
+void MPU9250_ClearInterruptAny(void) {
+    // Set bit[4] of MPU9250_INT_PIN_CFG_REG
+    // Read current value
+    uint8_t temp = MPU9250_I2C_Read(MPU9250_I2C_ADDRESS, MPU9250_INT_PIN_CFG_REG);
+    // Set bit[4]
+    temp |= 0x10;
+    // Write new value
+    MPU9250_I2C_Write(MPU9250_I2C_ADDRESS, MPU9250_INT_PIN_CFG_REG, temp);   
+}
+
+void MPU9250_ClearInterruptStatusReg(void) {
+    // Clear bit [4] of MPU9250_INT_PIN_CFG_REG
+    // Read current value
+    uint8_t temp = MPU9250_I2C_Read(MPU9250_I2C_ADDRESS, MPU9250_INT_ENABLE_REG);
+    // Clear bit[4]
+    temp &= ~0x10;
+    // Write new value
+    MPU9250_I2C_Write(MPU9250_I2C_ADDRESS, MPU9250_INT_ENABLE_REG, temp);      
+}
+
+void MPU9250_EnableI2CBypass(void) {
+    // Set bit [1] of MPU9250_INT_PIN_CFG_REG
+    // Read current value
+    uint8_t temp = MPU9250_I2C_Read(MPU9250_I2C_ADDRESS, MPU9250_INT_PIN_CFG_REG);
+    // Set bit[1]
+    temp |= 0x01;
+    // Write new value
+    MPU9250_I2C_Write(MPU9250_I2C_ADDRESS, MPU9250_INT_PIN_CFG_REG, temp);
+}
+
+void MPU9250_DisableI2CBypass(void) {
+    // Clear bit [1] of MPU9250_INT_PIN_CFG_REG
+    // Read current value
+    uint8_t temp = MPU9250_I2C_Read(MPU9250_I2C_ADDRESS, MPU9250_INT_ENABLE_REG);
+    // Clear bit[1]
+    temp &= ~0x01;
+    // Write new value
+    MPU9250_I2C_Write(MPU9250_I2C_ADDRESS, MPU9250_INT_ENABLE_REG, temp);
+}
 /* [] END OF FILE */

@@ -321,6 +321,13 @@
     
     /**
     * @brief Accelerometer configuration 2 register.
+    *
+    * | BIT | NAME | FUNCTION |
+    * |:-----:|------|---------| 
+    * | [7:6] | - | Reserved |
+    * | [5:4] | - | Reserved |
+    * | 3 | accel_fchoice_b | Used to bypass DLPF. This register contains accel_fchoice_b (inverted of accel_fchoice) |
+    * | [2:0] | A_DLPFCGF | Accelerometer low pass filter setting as shown in table. |
     */
     #ifndef MPU9250_ACCEL_CONFIG_2_REG
         #define MPU9250_ACCEL_CONFIG_2_REG 0x1D

@@ -253,6 +253,7 @@
     <Group key="Pin">
       <Data key="02f2cf2c-2c7a-49df-9246-7a3435c21be3" value="SCL_1" />
       <Data key="22863ebe-a37b-476f-b252-6e49a8c00b12" value="SDA_1" />
+      <Data key="41808de2-d8ed-40cc-86e6-0acf833add37" value="MPU9250_INT" />
       <Data key="1425177d-0d0e-4468-8bcc-e638e5509a9b" value="Rx_1" />
       <Data key="a58d985e-bec8-40b6-bfca-4c1d8b914042" value="Power_Led" />
       <Data key="e851a3b9-efb8-48be-bbb8-b303b216c393" value="Connection_Led" />
@@ -3351,6 +3352,11 @@
     <Group key="22863ebe-a37b-476f-b252-6e49a8c00b12">
       <Group key="0">
         <Data key="Port Format" value="12,1" />
+      </Group>
+    </Group>
+    <Group key="41808de2-d8ed-40cc-86e6-0acf833add37">
+      <Group key="0">
+        <Data key="Port Format" value="1,6" />
       </Group>
     </Group>
     <Group key="1425177d-0d0e-4468-8bcc-e638e5509a9b">
