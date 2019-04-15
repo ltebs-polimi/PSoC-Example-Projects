@@ -12,8 +12,10 @@ In particular, we used the [CY8CKIT-059](https://www.cypress.com/documentation/d
 - [HCSR04](https://github.com/dado93/PSoC-Example-Projects/tree/master/HCSR04): project showing how to measure distance using an ultrasound sensor (the HCSR04)
 - [MPU9250](https://github.com/dado93/PSoC-Example-Projects/tree/master/MPU9250): project showing how to use the I2C communication protocol and to read accelerometer and gyroscope
 values from the MPU9250 IMU
+- [EEPROM](https://github.com/dado93/PSoC-Example-Projects/tree/master/EEPROM): project showing how to read and write data in the embedded EEPROM.
 
 ## Future projects:
+- ~~EEPROM~~
 - ST HTS221
 - ST LPS25H
 - Sensirion SHT7x and SHT85
