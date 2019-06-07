@@ -13,9 +13,10 @@
 
 // Include required header files
 #include "project.h"
-#include "MPU9250.h"
+//#include "MPU9250.h"
 #include "stdio.h"
 
+#define READ_FLAG 0x80
 CY_ISR_PROTO(MPU9250_DR_ISR);
 
 int main(void)
@@ -25,27 +26,31 @@ int main(void)
     // Start UART component
     UART_1_Start();
     
-    UART_1_PutString("**************\r\n");
-    UART_1_PutString("    MPU9250   \r\n");
-    UART_1_PutString("**************\r\n");
+    UART_1_PutString("***************\r\n");
+    UART_1_PutString("     MPU9250   \r\n");
+    UART_1_PutString(" SPI INTERFACE \r\n");
+    UART_1_PutString("***************\r\n");
     
-    // Start I2C component
-    I2C_MPU9250_Master_Start();
+    // Start SPI component
+    SPIM_1_Start();
     
     CyDelay(1000);
     
     char message[30];       // Message to send over UART
     uint8_t connection = 0; // Variable to store connection status
     
-    // Scan I2C bus and find devices
-    for (int address = 0; address < 128; address++) {
-        if (I2C_MPU9250_Master_MasterSendStart(address, 0) == I2C_MPU9250_Master_MSTR_NO_ERROR) {
-            sprintf(message, "Found device at: 0x%02x\r\n", address);
-            UART_1_PutString(message);
-        }
-        I2C_MPU9250_Master_MasterSendStop();
-    }
+    // Read MPU9250 Who Am I Register
+    MPU9250_CS_Write(0);
+    SPIM_1_WriteTxData(READ_FLAG | 0x75);
+    while( 0!= (SPIM_1_ReadTxStatus() & SPIM_1_STS_SPI_DONE));
+    SPIM_1_WriteTxData(0xFF);
+    while( 0!= (SPIM_1_ReadTxStatus() & SPIM_1_STS_SPI_DONE));
+    uint8_t who_am_i = SPIM_1_ReadRxData();
+    sprintf(message, "WHO AM I: %d\r\n", who_am_i);
+    UART_1_PutString(message);
+    MPU9250_CS_Write(1);
     
+    /*
     // Wait until MPU9250 is connected
     do {
         connection = MPU9250_IsConnected();
@@ -63,7 +68,7 @@ int main(void)
     sprintf(message, "WHO AM I: 0x%02x - Expected: 0x%02x\r\n", whoami, MPU9250_WHO_AM_I);
     UART_1_PutString(message);
     
-    MPU9250_ISR_StartEx(MPU9250_DR_ISR);
+    MPU9250_ISR_StartEx(MPU9250_DR_ISR);*/
     
     for(;;)
     {
