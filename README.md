@@ -14,6 +14,7 @@ In particular, we used the [CY8CKIT-059](https://www.cypress.com/documentation/d
 values from the MPU9250 IMU
 - [EEPROM](https://github.com/dado93/PSoC-Example-Projects/tree/master/EEPROM): project showing how to read and write data in the embedded EEPROM.
 - [TMUX1208](https://github.com/dado93/PSoC-Example-Projects/tree/master/TMUX1208): project showing how to interface the PSoC 5LP with a TMUX1208.
+- [I2C](https://github.com/dado93/PSoC-Example-Projects/tree/master/I2C_MasterSlave): project showing how I2C communication can be established between a PSoC 5LP and a PSoC 6
 
 ## Future projects:
 - ~~EEPROM~~
