@@ -34,9 +34,19 @@ int main(void)
         }
     }
     
-    uint8_t who_am_i;
-    error = I2C_Peripheral_ReadRegister(0xBE>>1,0x0F,&who_am_i);
-    sprintf(debug_string, "WHO AM I: 0x%02X\r\n", who_am_i);
+    uint8_t reg_value;
+    error = I2C_Peripheral_ReadRegister(0xBE>>1,0x0F,&reg_value);
+    sprintf(debug_string, "WHO AM I: 0x%02X\r\n", reg_value);
+    UART_Debug_PutString(debug_string);
+    
+    error = I2C_Peripheral_ReadRegister(0xBE>>1,0x10,&reg_value);
+    sprintf(debug_string, "AV_CONF: 0x%02X\r\n", reg_value);
+    UART_Debug_PutString(debug_string);
+    
+    error = I2C_Peripheral_WriteRegister(0xBE>>1, 0x10, 0b010010); 
+    
+    error = I2C_Peripheral_ReadRegister(0xBE>>1,0x10,&reg_value);
+    sprintf(debug_string, "AV_CONF: 0x%02X\r\n", reg_value);
     UART_Debug_PutString(debug_string);
     
     for(;;)
