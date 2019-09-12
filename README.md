@@ -19,7 +19,7 @@ values from the MPU9250 IMU
 
 ## Future projects:
 - ~~EEPROM~~
-- ~~ST HTS221
+- ~~ST HTS221~~
 - ST LPS25H
 - Sensirion SHT7x and SHT85
 - ADC measurements
