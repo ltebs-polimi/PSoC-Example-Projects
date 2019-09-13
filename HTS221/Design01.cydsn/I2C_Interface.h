@@ -50,14 +50,11 @@
     *   \param register_address Address of the first register to be read.
     *   \param register_count Number of registers we want to read.
     *   \param data Pointer to an array where data will be saved.
-    *   \param restart Boolean flag to determine if a restart condition should be issued between
-                    multiple readings
     */
     ErrorCode I2C_Peripheral_ReadRegisterMulti(uint8_t device_address,
                                                 uint8_t register_address,
                                                 uint8_t register_count,
-                                                uint8_t* data,
-                                                uint8_t restart);
+                                                uint8_t* data);
     /** 
     *   \brief Write a byte over I2C.
     *   
@@ -70,6 +67,21 @@
     ErrorCode I2C_Peripheral_WriteRegister(uint8_t device_address,
                                             uint8_t register_address,
                                             uint8_t data);
+    
+    /** 
+    *   \brief Write multiple bytes over I2C.
+    *   
+    *   This function performs a complete writing operation over I2C to multiple
+    *   registers
+    *   \param device_address I2C address of the device to talk to.
+    *   \param register_address Address of the first register to be written.
+    *   \param register_count Number of registers that need to be written.
+    *   \param data Array of data to be written
+    */
+    ErrorCode I2C_Peripheral_WriteRegisterMulti(uint8_t device_address,
+                                            uint8_t register_address,
+                                            uint8_t register_count,
+                                            uint8_t* data);
     
     /**
     *   \brief Check if device is connected over I2C.

@@ -16,12 +16,12 @@
 *   be used throughout the project.
 */
 typedef enum {
-    NO_ERROR,           // No error generated
-    UNKNOWN_ERROR,      // Unknown error
-    BAD_PARAMETER,      // Bad parameter error
-    BAD_INDEX,          // Null pointer
-    UNINIT_VARIABLE,    // Uninitialized variable
-    UNINIT_SYSTEM      // Uninitialized system
+    NO_ERROR,           ///< No error generated
+    UNKNOWN_ERROR,      ///< Unknown error
+    BAD_PARAMETER,      ///< Bad parameter error
+    BAD_INDEX,          ///< Null pointer
+    UNINIT_VARIABLE,    ///< Uninitialized variable
+    UNINIT_SYSTEM       ///< Uninitialized system
 } ErrorCode;
 
 /* [] END OF FILE */
