@@ -217,7 +217,7 @@
     uint8_t I2C_Peripheral_IsDeviceConnected(uint8_t device_address)
     {
         // Send a start condition followed by a stop condition
-        uint8_t error = I2C_Peripheral_Name(MasterSendStart)(device_address, I2C_WRITE);
+        uint8_t error = I2C_Peripheral_Name(MasterSendStart)(device_address, I2C_READ);
         I2C_Peripheral_Name(MasterSendStop)();
         // If no error generated during stop, device is connected
         if (error == I2C_Peripheral_Name(MSTR_NO_ERROR))
