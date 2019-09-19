@@ -311,6 +311,15 @@
     } HTS221_Error;
     
     /**
+    *   \brief Data update values
+    */
+    typedef enum 
+    {
+        HTS221_UPDATE_BLOCKED,      //< Data update blocked
+        HTS221_UPDATE_CONTINUOUS    //< Data update continuous
+    } HTS221_DataUpdate;
+    
+    /**
     *   \brief Codes returned to determine if measurement is ready
     */
     typedef enum 
@@ -413,6 +422,8 @@
         HTS221_Measurement_Ready measReady; ///< Flag for measurement ready
         HTS221_Heater heater;               ///< Flag for heater
         HTS221_Power power;                 ///< Flag for power up
+        HTS221_ODR odr;                     ///< Output data rate value
+        HTS221_DataUpdate du;               ///< Data update setting
     } HTS221_Struct;
     
     
@@ -502,7 +513,7 @@
     *   it and stores the converted value it in the 
     *   ::HTS221_Struct passed in as parameter.
     *   \param hts221 a valid pointer to a ::HTS221_Struct 
-    *   \return ::ErrorCode depending on the error generated
+    *   \return ::HTS221_Error code
     */
     HTS221_Error HTS221_ReadHumidity(HTS221_Struct* hts221);
 
@@ -511,8 +522,11 @@
     *   
     *   This function allows to set the output data rate of the sensor.
     *   The choices are defined by the ::HTS221_ODR enum (OneShot, 1, 7, 12.5 Hz).
+    *   \param hts221 a valid pointer to a ::HTS221_Struct
+    *   \param odr the desired value of output data rate
+    *   \return ::HTS221_Error code
     */
-    HTS221_Error HTS221_SetOutputDataRate(HTS221_ODR odr);
+    HTS221_Error HTS221_SetOutputDataRate(HTS221_Struct* hts221, HTS221_ODR odr);
 
     /**
     *   \brief Enable update of data.
@@ -522,7 +536,7 @@
     *   are continuously updated regardless of whether the MSB and LSB were
     *   read or not.
     */
-    HTS221_Error HTS221_EnableDataupdate(void);
+    HTS221_Error HTS221_EnableDataupdate(HTS221_Struct* hts221);
 
     /**
     *   \brief Enable update of data.
@@ -532,7 +546,7 @@
     *   updated until MSB and LSB reading. Useful it is not certain wheter
     *   the read will be faster than output data rate.
     */
-    HTS221_Error HTS221_BlockDataUpdate(void);
+    HTS221_Error HTS221_BlockDataUpdate(HTS221_Struct* hts221);
 
     /**
     *   \brief Turn on the internal heating element.

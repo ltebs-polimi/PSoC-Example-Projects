@@ -292,6 +292,143 @@ HTS221_Error HTS221_ReadCalibrationCoefficients(HTS221_Struct* hts221) {
     return HTS221_OK;
 }
 
+/************************************************/
+/*         SETTINGS RELATED FUNCTIONS           */
+/************************************************/
+
+ HTS221_Error HTS221_SetOutputDataRate(HTS221_Struct* hts221, HTS221_ODR odr)
+{
+    // Bits[1:0] of CTRL_REG_1 allows to set the desired output data rate
+    // Read current value of register
+    uint8_t temp;
+    ErrorCode error = I2C_Peripheral_ReadRegister(HTS221_I2C_ADDRESS,
+                                    HTS221_CTRL_REG_1,
+                                    &temp);
+    if ( error != NO_ERROR)
+    {
+        return HTS221_ERROR;
+    }
+    // Write new register value with desired value of ODR
+    error = I2C_Peripheral_WriteRegister(HTS221_I2C_ADDRESS,
+                                    HTS221_CTRL_REG_1,
+                                    temp | (odr & 0x03));
+    hts221->odr = odr;
+    
+    // Check for errors
+    if ( error != NO_ERROR)
+    {
+        return HTS221_ERROR;
+    }
+    return HTS221_OK;
+}
+
+HTS221_Error HTS221_BlockDataUpdate(HTS221_Struct* hts221) 
+{
+    // Bit 2 of CTRL_REG_1 allows to block or enable the data update
+    // Read current value of register
+    uint8_t temp;
+    ErrorCode error = I2C_Peripheral_ReadRegister(HTS221_I2C_ADDRESS,
+                                    HTS221_CTRL_REG_1,
+                                    &temp);
+    if ( error != NO_ERROR)
+    {
+        return HTS221_ERROR;
+    }
+    // Write new register value with bit 2 set
+    error = I2C_Peripheral_WriteRegister(HTS221_I2C_ADDRESS,
+                                    HTS221_CTRL_REG_1,
+                                    temp | (1<<2));
+    
+    hts221->du = HTS221_UPDATE_BLOCKED;
+    
+    if ( error != NO_ERROR)
+    {
+        return HTS221_ERROR;
+    }
+    return HTS221_OK;
+}
+
+HTS221_Error HTS221_EnableDataupdate(HTS221_Struct* hts221)
+{
+    // Bit 2 of CTRL_REG_1 allows to block or enable the data update
+    // Read current value of register
+    uint8_t temp;
+    ErrorCode error = I2C_Peripheral_ReadRegister(HTS221_I2C_ADDRESS,
+                                    HTS221_CTRL_REG_1,
+                                    &temp);
+    if ( error != NO_ERROR)
+    {
+        return HTS221_ERROR;
+    }
+    // Write new register value with bit 2 cleared
+    error = I2C_Peripheral_WriteRegister(HTS221_I2C_ADDRESS,
+                                    HTS221_CTRL_REG_1,
+                                    temp & ~(1<<2));
+    
+    hts221->du = HTS221_UPDATE_CONTINUOUS;
+    
+    if ( error != NO_ERROR)
+    {
+        return HTS221_ERROR;
+    }
+    return HTS221_OK;
+}
+
+HTS221_Error HTS221_HeaterStart(HTS221_Struct* hts221)
+{
+    // Bit 1 of CTRL_REG_2 allows to start or stop the internal heater
+    // Read current value of register
+    uint8_t temp;
+    ErrorCode error = I2C_Peripheral_ReadRegister(HTS221_I2C_ADDRESS,
+                                    HTS221_CTRL_REG_2,
+                                    &temp);
+    if ( error != NO_ERROR)
+    {
+        return HTS221_ERROR;
+    }
+    // Write new register value with bit 2 set
+    error = I2C_Peripheral_WriteRegister(HTS221_I2C_ADDRESS,
+                                    HTS221_CTRL_REG_2,
+                                    temp | (1<<1));
+    
+    hts221->heater = HTS221_HEATER_ON;
+    
+    if ( error != NO_ERROR)
+    {
+        return HTS221_ERROR;
+    }
+    return HTS221_OK;   
+}
+
+HTS221_Error HTS221_HeaterStop(HTS221_Struct* hts221)
+{
+    // Bit 1 of CTRL_REG_2 allows to start or stop the internal heater
+    // Read current value of register
+    uint8_t temp;
+    ErrorCode error = I2C_Peripheral_ReadRegister(HTS221_I2C_ADDRESS,
+                                    HTS221_CTRL_REG_2,
+                                    &temp);
+    if ( error != NO_ERROR)
+    {
+        return HTS221_ERROR;
+    }
+    // Write new register value with bit 2 set
+    error = I2C_Peripheral_WriteRegister(HTS221_I2C_ADDRESS,
+                                    HTS221_CTRL_REG_2,
+                                    (temp & (~(1<<1))));
+    
+    hts221->heater = HTS221_HEATER_OFF;
+    
+    if ( error != NO_ERROR)
+    {
+        return HTS221_ERROR;
+    }
+    return HTS221_OK;   
+}
+
+/************************************************/
+/*           POWER UP/DOWN FUNCTIONS            */
+/************************************************/
 HTS221_Error HTS221_PowerUp(HTS221_Struct *hts221) 
 {
     // Set bit 7 of CTRL_REG_1 to power up the device
@@ -307,8 +444,34 @@ HTS221_Error HTS221_PowerUp(HTS221_Struct *hts221)
     // Write new register value with bit 7 set
     error = I2C_Peripheral_WriteRegister(HTS221_I2C_ADDRESS,
                                     HTS221_CTRL_REG_1,
-                                    temp | 0x80);
+                                    temp | (1<<7));
     hts221->power = HTS221_POWER_ON;
+    
+    if ( error != NO_ERROR)
+    {
+        return HTS221_ERROR;
+    }
+    return HTS221_OK;
+    
+}
+
+HTS221_Error HTS221_PowerDown(HTS221_Struct *hts221) 
+{
+    // Set bit 7 of CTRL_REG_1 to power up the device
+    // Read current value of register
+    uint8_t temp;
+    ErrorCode error = I2C_Peripheral_ReadRegister(HTS221_I2C_ADDRESS,
+                                    HTS221_CTRL_REG_1,
+                                    &temp);
+    if ( error != NO_ERROR)
+    {
+        return HTS221_ERROR;
+    }
+    // Write new register value with bit 7 cleared
+    error = I2C_Peripheral_WriteRegister(HTS221_I2C_ADDRESS,
+                                    HTS221_CTRL_REG_1,
+                                    temp &~ (1<<7));
+    hts221->power = HTS221_POWER_OFF;
     
     if ( error != NO_ERROR)
     {
