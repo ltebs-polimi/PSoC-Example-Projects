@@ -12,7 +12,6 @@
 #include "project.h"
 #include "stdio.h"
 #include "HTS221.h"
-#include "I2C_Interface.h"
 
 int main(void)
 {
@@ -20,20 +19,24 @@ int main(void)
 
     /* Place your initialization/startup code here (e.g. MyInst_Start()) */
     UART_Debug_Start();
-    UART_Debug_PutString("HTS221 Start\r\n");
-    I2C_Peripheral_Start();
+    UART_Debug_PutString("\n\n\n\nHTS221 Start\r\n");
     
     HTS221_Struct hts221;
-    uint8_t who_am_i = 0;
-    char str[10] = {'\0'};
+    char str[30] = {'\0'};
     
-    HTS221_ReadWhoAmI(&hts221, &who_am_i);
-    sprintf(str, "0x%02X [0x%02X]\r\n", who_am_i, HTS221_WHO_AM_I);
-    UART_Debug_PutString(str);
-    
+    HTS221_Start(&hts221);
+        
+        
     for(;;)
     {
-        /* Place your application code here. */
+        HTS221_OneShot();
+        CyDelay(100);
+        
+        HTS221_ReadTemperature(&hts221);
+        HTS221_ReadHumidity(&hts221);
+        sprintf(str, "Temp: %d\tHum: %d\r\n", hts221.temperature, hts221.humidity);
+        UART_Debug_PutString(str);
+        CyDelay(1000);
     }
 }
 

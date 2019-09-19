@@ -204,6 +204,8 @@
         #define HTS221_TEMP_OUT_H_REG 0x2B
     #endif
 
+    /*****   Calibration Coefficients Registers     *****/
+
     /**
     *   \brief Calibration register for value H0_rH_x2.
     */
@@ -242,43 +244,57 @@
     /**
     *   \brief Calibration register for MSb value H0_T0_OUT.
     */
-    #ifndef HTS221_H0_T0_OUT_H_REG
-        #define HTS221_H0_T0_OUT_H_REG 0x36
+    #ifndef HTS221_H0_T0_OUT_L_REG
+        #define HTS221_H0_T0_OUT_L_REG 0x36
     #endif
 
     /**
     *   \brief Calibration register for LSb value H0_T0_OUT.
     */
-    #ifndef HTS221_H0_T0_OUT_L_REG
-        #define HTS221_H0_T0_OUT_L_REG 0x37
+    #ifndef HTS221_H0_T0_OUT_H_REG
+        #define HTS221_H0_T0_OUT_H_REG 0x37
     #endif
 
     /**
     *   \brief Calibration register for MSb value H1_T0_OUT.
     */
-    #ifndef HTS221_H1_T0_OUT_H_REG
-        #define HTS221_H1_T0_OUT_H_REG 0x3A
+    #ifndef HTS221_H1_T0_OUT_L_REG
+        #define HTS221_H1_T0_OUT_L_REG 0x3A
     #endif
 
     /**
     *   \brief Calibration register for LSb value H1_T0_OUT.
     */
-    #ifndef HTS221_H1_T0_OUT_L_REG
-        #define HTS221_H1_T0_OUT_L_REG 0x3B
+    #ifndef HTS221_H1_T0_OUT_H_REG
+        #define HTS221_H1_T0_OUT_H_REG 0x3B
     #endif
 
     /**
     *   \brief Calibration register for MSb value T0_OUT.
     */
-    #ifndef HTS221_T0_OUT_H_REG
-        #define HTS221_T0_OUT_H_REG 0x3C
+    #ifndef HTS221_T0_OUT_L_REG
+        #define HTS221_T0_OUT_L_REG 0x3C
     #endif
 
     /**
     *   \brief Calibration register for LSb value T0_OUT.
     */
-    #ifndef HTS221_T0_OUT_L_REG
-        #define HTS221_T0_OUT_L_REG 0x3D
+    #ifndef HTS221_T0_OUT_H_REG
+        #define HTS221_T0_OUT_H_REG 0x3D
+    #endif
+    
+    /**
+    *   \brief Calibration register for MSb value T0_OUT.
+    */
+    #ifndef HTS221_T1_OUT_L_REG
+        #define HTS221_T1_OUT_L_REG 0x3E
+    #endif
+
+    /**
+    *   \brief Calibration register for LSb value T0_OUT.
+    */
+    #ifndef HTS221_T1_OUT_H_REG
+        #define HTS221_T1_OUT_H_REG 0x3F
     #endif
 
     /******************************************************/
@@ -286,18 +302,54 @@
     /******************************************************/
 
     /**
+    *   \brief Error codes returned by functions
+    */
+    typedef enum 
+    {
+        HTS221_OK,      //< Everything ok
+        HTS221_ERROR    //< Error
+    } HTS221_Error;
+    
+    /**
+    *   \brief Codes returned to determine if measurement is ready
+    */
+    typedef enum 
+    {
+        HTS221_MEAS_READY,       //< New measurement is ready
+        HTS221_MEAS_NOT_READY    //< New measurement is not ready
+    } HTS221_Measurement_Ready;
+    
+    /**
+    *   \brief Codes to store if heater is on or off
+    */
+    typedef enum 
+    {
+        HTS221_HEATER_ON,       //< Heater ON
+        HTS221_HEATER_OFF       //< Heater OFF
+    } HTS221_Heater;
+    
+    /**
+    *   \brief Codes to store if sensor is active or not
+    */
+    typedef enum 
+    {
+        HTS221_POWER_ON,       //< Power ON
+        HTS221_POWER_OFF       //< Power OFF
+    } HTS221_Power;
+    
+    /**
     *   \brief Resolution mode for temperature.
     */
     typedef enum 
     {
-        AVGT_2,     ///< 2 averaged samples
-        AVGT_4,     ///< 4 averaged samples
-        AVGT_8,     ///< 8 averaged samples
-        AVGT_16,    ///< 16 averaged samples
-        AVGT_32,    ///< 32 averaged samples
-        AVGT_64,    ///< 64 averaged samples
-        AVGT_128,   ///< 128 averaged samples
-        AVGT_256    ///< 256 averaged samples
+        HTS221_AVGT_2,     ///< 2 averaged samples
+        HTS221_AVGT_4,     ///< 4 averaged samples
+        HTS221_AVGT_8,     ///< 8 averaged samples
+        HTS221_AVGT_16,    ///< 16 averaged samples
+        HTS221_AVGT_32,    ///< 32 averaged samples
+        HTS221_AVGT_64,    ///< 64 averaged samples
+        HTS221_AVGT_128,   ///< 128 averaged samples
+        HTS221_AVGT_256    ///< 256 averaged samples
     } HTS221_AVGTemperature;
 
     /**
@@ -305,14 +357,14 @@
     */
     typedef enum 
     {
-        AVGH_4,     ///< 4 averaged samples
-        AVGH_8,     ///< 8 averaged samples
-        AVGH_16,    ///< 16 averaged samples
-        AVGH_32,    ///< 32 averaged samples
-        AVGH_64,    ///< 64 averaged samples
-        AVGH_128,   ///< 128 averaged samples
-        AVGH_256,   ///< 256 averaged samples
-        AVGH_512,   ///< 512 averaged samples
+        HTS221_AVGH_4,     ///< 4 averaged samples
+        HTS221_AVGH_8,     ///< 8 averaged samples
+        HTS221_AVGH_16,    ///< 16 averaged samples
+        HTS221_AVGH_32,    ///< 32 averaged samples
+        HTS221_AVGH_64,    ///< 64 averaged samples
+        HTS221_AVGH_128,   ///< 128 averaged samples
+        HTS221_AVGH_256,   ///< 256 averaged samples
+        HTS221_AVGH_512,   ///< 512 averaged samples
     } HTS221_AVGHumidity;
 
     /**
@@ -335,33 +387,16 @@
     *   in an unique variable.
     */
     typedef struct {
-        uint8_t H0_rH_x2;   ///< H0_rH_x2 calibration coefficient
-        uint8_t H1_rH_x2;   ///< H1_rH_x2 calibration coefficient
-        uint8_t T0_degC_x8; ///< T0_degC_x8 calibration coefficient
-        uint8_t T1_degC_x8; ///< T1_degC_x8 calibration coefficient
-        uint8_t T1_T0_msb;  ///< T1_T0_msb calibration coefficient
+        uint8_t H0_rH;   ///< H0_rH_x2 calibration coefficient
+        uint8_t H1_rH;   ///< H1_rH_x2 calibration coefficient
+        int16_t T0_degC; ///< T0_degC_x8 calibration coefficient
+        int16_t T1_degC; ///< T1_degC_x8 calibration coefficient
         int16_t H0_T0_OUT;  ///< H0_T0_OUT calibration coefficient
         int16_t H1_T0_OUT;  ///< H1_T0_OUT calibration coefficient
         int16_t T0_OUT;     ///< T0_OUT calibration coefficient
         int16_t T1_OUT;     ///< T1_OUT calibration coefficient
     } HTS221_CalCoeff;
-    
-    /**
-    *   \brief New data type to store HTS221 temperature values.
-    */
-    typedef union {
-        float temp_f;       ///< Temperature in floating point format
-        int16_t temp_s16;   ///< Temperature as signed 16 bit
-    } HTS221_Temperature;
-    
-    /**
-    *   \brief New data type to store HTS221 temperature values.
-    */
-    typedef union {
-        float hum_f;        ///< Humidity in floating point format
-        int16_t hum_s16;    ///< Humidity as signed 16 bit
-    } HTS221_Humidity;
-    
+        
     /**
     *   \brief New data type for HTS221-related data.
     *
@@ -370,12 +405,14 @@
     *   This could happen if you implement or have an I2C multiplexer.
     */
     typedef struct {
-        HTS221_CalCoeff coeff;          ///< Calibration coefficients
-        HTS221_Temperature temperature; ///< Temperature value
-        HTS221_Humidity humidity;       ///< Humidity value
-        uint8_t heaterOn;               ///< Heater on flag
-        HTS221_AVGHumidity avgHum;      ///< Humidity resolution mode
-        HTS221_AVGTemperature avgTemp;  ///< Temperature resolution mode
+        HTS221_CalCoeff coeff;              ///< Calibration coefficients
+        int32_t temperature;                ///< Temperature value
+        uint16_t humidity;                  ///< Humidity value
+        HTS221_AVGHumidity avgHum;          ///< Humidity resolution mode
+        HTS221_AVGTemperature avgTemp;      ///< Temperature resolution mode
+        HTS221_Measurement_Ready measReady; ///< Flag for measurement ready
+        HTS221_Heater heater;               ///< Flag for heater
+        HTS221_Power power;                 ///< Flag for power up
     } HTS221_Struct;
     
     
@@ -395,14 +432,14 @@
     *   - set default output data rate
     *   - read calibration coefficients
     */
-    void HTS221_Start(HTS221_Struct* hts221);
+    HTS221_Error HTS221_Start(HTS221_Struct* hts221);
 
     /**
     *   \brief Stop the HTS221 sensor.
     *
     * This function powers down the HTS221 sensor.
     */
-    void HTS221_Stop(HTS221_Struct* hts221);
+    HTS221_Error HTS221_Stop(HTS221_Struct* hts221);
     
     /**
     *   \brief Performs one-shot acquisition.
@@ -410,7 +447,14 @@
     *   This function enables to perform a one-shot acquisition of temperature
     *   and humidity data.
     */
-    void HTS221_OneShot(void);
+    HTS221_Error HTS221_OneShot(void);
+    
+    /**
+    *   \brief Check if a new measurement is ready.
+    *
+    *   This function checks whether there is a new measurement ready to be read.
+    */
+    HTS221_Error HTS221_IsMeasurementReady(HTS221_Struct* hts221);
 
     /**
     *   \brief Set the temperature resolution mode.
@@ -423,7 +467,7 @@
     *   \param avgTemp desired value of average temperature samples to be set
     *   \return ::ErrorCode depending on error generated
     */
-    void HTS221_SetTemperatureResolution(HTS221_Struct* hts221, 
+    HTS221_Error HTS221_SetTemperatureResolution(HTS221_Struct* hts221, 
                                             HTS221_AVGTemperature avgTemp);
 
     /**
@@ -437,28 +481,8 @@
     *   \param avgHum desired value of average humidity samples to be set
     *   \return ::ErrorCode depending on error generated
     */
-    ErrorCode HTS221_SetHumidityResolution(HTS221_Struct* hts221,
+    HTS221_Error HTS221_SetHumidityResolution(HTS221_Struct* hts221,
                                         HTS221_AVGHumidity avgHum);
-
-    /**
-    *   \brief Read raw temperature value
-    *   
-    *   This function reads the raw temperature value and stores
-    *   it in the ::HTS221_Struct passed in as parameter.
-    *   \param hts221 a valid pointer to a ::HTS221_Struct 
-    *   \return ::ErrorCode depending on the error generated
-    */
-    ErrorCode HTS221_ReadRawTemperature(HTS221_Struct* hts221);
-    
-    /**
-    *   \brief Read raw humidity value
-    *   
-    *   This function reads the raw humidity value and stores
-    *   it in the ::HTS221_Struct passed in as parameter.
-    *   \param hts221 a valid pointer to a ::HTS221_Struct 
-    *   \return ::ErrorCode depending on the error generated
-    */
-    ErrorCode HTS221_ReadRawHumidity(HTS221_Struct* hts221);
     
     /**
     *   \brief Read and convert temperature value
@@ -469,7 +493,7 @@
     *   \param hts221 a valid pointer to a ::HTS221_Struct 
     *   \return ::ErrorCode depending on the error generated
     */
-    ErrorCode HTS221_ReadTemperature(HTS221_Struct* hts221);
+    HTS221_Error HTS221_ReadTemperature(HTS221_Struct* hts221);
 
     /**
     *   \brief Read and convert humidity value
@@ -480,7 +504,7 @@
     *   \param hts221 a valid pointer to a ::HTS221_Struct 
     *   \return ::ErrorCode depending on the error generated
     */
-    ErrorCode HTS221_ReadHumidity(HTS221_Struct* hts221);
+    HTS221_Error HTS221_ReadHumidity(HTS221_Struct* hts221);
 
     /**
     *   \brief Set the sensor output data rate.
@@ -488,7 +512,7 @@
     *   This function allows to set the output data rate of the sensor.
     *   The choices are defined by the ::HTS221_ODR enum (OneShot, 1, 7, 12.5 Hz).
     */
-    void HTS221_SetOutputDataRate(HTS221_ODR odr);
+    HTS221_Error HTS221_SetOutputDataRate(HTS221_ODR odr);
 
     /**
     *   \brief Enable update of data.
@@ -498,7 +522,7 @@
     *   are continuously updated regardless of whether the MSB and LSB were
     *   read or not.
     */
-    void HTS221_EnableDataupdate(void);
+    HTS221_Error HTS221_EnableDataupdate(void);
 
     /**
     *   \brief Enable update of data.
@@ -508,7 +532,7 @@
     *   updated until MSB and LSB reading. Useful it is not certain wheter
     *   the read will be faster than output data rate.
     */
-    void HTS221_BlockDataUpdate(void);
+    HTS221_Error HTS221_BlockDataUpdate(void);
 
     /**
     *   \brief Turn on the internal heating element.
@@ -516,7 +540,7 @@
     *   This function turns on the internal heating element of the sensor.
     *   \return ::ErrorCode depending on error generated
     */
-    ErrorCode HTS221_HeaterStart(HTS221_Struct* hts221);
+    HTS221_Error HTS221_HeaterStart(HTS221_Struct* hts221);
 
     /**
     *   \brief Turn off the internal heating element.
@@ -524,7 +548,7 @@
     *   This function turns off the internal heating element of the sensor.
     *   \return ::ErrorCode depending on error generated   
     */
-    ErrorCode HTS221_HeaterStop(HTS221_Struct* hts221);
+    HTS221_Error HTS221_HeaterStop(HTS221_Struct* hts221);
 
     /**
     *   \brief Reads calibration coefficients stored in sensor memory.
@@ -534,7 +558,7 @@
     *   \param hts221 Pointer to a valid ::HTS221_Struct
     *   \return ::ErrorCode depending on error generated
     */
-    ErrorCode HTS221_ReadCalibrationCoefficients(HTS221_Struct* hts221);
+    HTS221_Error HTS221_ReadCalibrationCoefficients(HTS221_Struct* hts221);
     
     /**
     *   \brief Reboots memory content.
@@ -543,7 +567,7 @@
     *   the Flash memory block.
     *   \return ::ErrorCode depending on error generated
     */
-    ErrorCode HTS221_RebootMemoryContent(void);
+    HTS221_Error HTS221_RebootMemoryContent(void);
     
     /**
     *   \brief Reboots memory content.
@@ -554,7 +578,7 @@
     *   \param reg_val Pointer to a byte where we will store the value read from the register
     *   \return ::ErrorCode depending on error generated
     */
-    ErrorCode HTS221_ReadWhoAmI(HTS221_Struct* hts221, uint8_t* reg_val);
+    HTS221_Error HTS221_ReadWhoAmI(HTS221_Struct* hts221, uint8_t* reg_val);
 
     
 

@@ -61,6 +61,7 @@
     {
         // Start I2C peripheral
         I2C_Peripheral_Name(Start)();  
+        I2C_Peripheral_Name(Start)();
         // Return no error since start function does not return any error
         return NO_ERROR;
     }
