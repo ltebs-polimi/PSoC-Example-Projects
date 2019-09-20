@@ -24,7 +24,7 @@
     *   \brief 7-bit I2C address of HTS221.
     */
     #ifndef HTS221_I2C_ADDRESS
-        #define HTS221_I2C_ADDRESS 0xBE>>1
+        #define HTS221_I2C_ADDRESS 0x5F
     #endif
         
     /******************************************************/
@@ -329,6 +329,33 @@
     } HTS221_Measurement_Ready;
     
     /**
+    *   \brief Possible configuration settings for DRDY signal
+    */
+    typedef enum 
+    {
+        HTS221_DRDY_ACTIVE_HIGH,  //< DRDY signal active high
+        HTS221_DRDY_ACTIVE_LOW    //< DRDY signal active low
+    } HTS221_DRDY_Level;
+    
+    /**
+    *   \brief Possible configuration settings for DRDY signal
+    */
+    typedef enum 
+    {
+        HTS221_DRDY_PUSH_PULL,    //< DRDY push pull
+        HTS221_DRDY_OPEN_DRAIN    //< DRDY open drain
+    } HTS221_DRDY_Configuration;
+    
+    /**
+    *   \brief Possible configuration settings for DRDY signal
+    */
+    typedef enum 
+    {
+        HTS221_DRDY_ENABLED,    //< DRDY enabled
+        HTS221_DRDY_DISABLED    //< DRDY disabled
+    } HTS221_DRDY_Enable;
+    
+    /**
     *   \brief Codes to store if heater is on or off
     */
     typedef enum 
@@ -383,10 +410,10 @@
     */
     typedef enum 
     {
-        ODR_OneShot,    ///< One Shot measurement 
-        ODR_1Hz,        ///< 1 Hz output data rate update
-        ODR_7Hz,        ///< 7 Hz output data rate update
-        ODR_12_5Hz      ///< 12.5 Hz output data rate update
+        HTS221_ODR_OneShot,    ///< One Shot measurement 
+        HTS221_ODR_1Hz,        ///< 1 Hz output data rate update
+        HTS221_ODR_7Hz,        ///< 7 Hz output data rate update
+        HTS221_ODR_12_5Hz      ///< 12.5 Hz output data rate update
     } HTS221_ODR;
 
     /**
@@ -396,10 +423,10 @@
     *   in an unique variable.
     */
     typedef struct {
-        uint8_t H0_rH;   ///< H0_rH_x2 calibration coefficient
-        uint8_t H1_rH;   ///< H1_rH_x2 calibration coefficient
-        int16_t T0_degC; ///< T0_degC_x8 calibration coefficient
-        int16_t T1_degC; ///< T1_degC_x8 calibration coefficient
+        uint8_t H0_rH;      ///< H0_rH calibration coefficient
+        uint8_t H1_rH;      ///< H1_rH calibration coefficient
+        int16_t T0_degC;    ///< T0_degC calibration coefficient
+        int16_t T1_degC;    ///< T1_degC calibration coefficient
         int16_t H0_T0_OUT;  ///< H0_T0_OUT calibration coefficient
         int16_t H1_T0_OUT;  ///< H1_T0_OUT calibration coefficient
         int16_t T0_OUT;     ///< T0_OUT calibration coefficient
@@ -414,16 +441,20 @@
     *   This could happen if you implement or have an I2C multiplexer.
     */
     typedef struct {
-        HTS221_CalCoeff coeff;              ///< Calibration coefficients
-        int32_t temperature;                ///< Temperature value
-        uint16_t humidity;                  ///< Humidity value
-        HTS221_AVGHumidity avgHum;          ///< Humidity resolution mode
-        HTS221_AVGTemperature avgTemp;      ///< Temperature resolution mode
-        HTS221_Measurement_Ready measReady; ///< Flag for measurement ready
-        HTS221_Heater heater;               ///< Flag for heater
-        HTS221_Power power;                 ///< Flag for power up
-        HTS221_ODR odr;                     ///< Output data rate value
-        HTS221_DataUpdate du;               ///< Data update setting
+        HTS221_CalCoeff coeff;                  ///< Calibration coefficients
+        int32_t temperature;                    ///< Temperature value
+        uint16_t humidity;                      ///< Humidity value
+        HTS221_AVGHumidity avgHum;              ///< Humidity resolution mode
+        HTS221_AVGTemperature avgTemp;          ///< Temperature resolution mode
+        HTS221_Measurement_Ready measReady;     ///< Flag for measurement ready
+        HTS221_Heater heater;                   ///< Flag for heater
+        HTS221_Power power;                     ///< Flag for power up
+        HTS221_ODR odr;                         ///< Output data rate value
+        HTS221_DataUpdate du;                   ///< Data update setting
+        HTS221_DRDY_Level drdy_level;           ///< DRDY Signal level
+        HTS221_DRDY_Configuration drdy_config;  ///< DRDY Pin Configuration
+        HTS221_DRDY_Enable drdy_enable;         ///< DRDY Enable flag
+        uint8_t who_am_i_check;                 ///< Flag for who am i check
     } HTS221_Struct;
     
     
@@ -437,35 +468,135 @@
     *
     *   This function starts the HTS221 by performing the following
     *   operations:
-    *   - power up 
+    *   - power up the sensor
     *   - set default resolution mode for temperature
     *   - set default resolution mode for humidity
     *   - set default output data rate
+    *   - set the data ready signal
     *   - read calibration coefficients
+    *   \return ::HTS221_Error depending on the error generated
     */
     HTS221_Error HTS221_Start(HTS221_Struct* hts221);
 
     /**
     *   \brief Stop the HTS221 sensor.
     *
-    * This function powers down the HTS221 sensor.
+    *   This function powers down the HTS221 sensor.
+    *   \return ::HTS221_Error depending on the error generated
     */
     HTS221_Error HTS221_Stop(HTS221_Struct* hts221);
     
+    /******************************************************/
+    /*          Measurement related functions             */
+    /******************************************************/
+    
     /**
-    *   \brief Performs one-shot acquisition.
+    *   \brief Perform one-shot temperature measurement.
+    *   
+    *   This function starts a one-shot measurement, waits until the appropriate
+    *   bits in the status register have been set (or the specified timeout has
+    *   expired), and stores the converted temperature value in the ::HTS221_Struct
+    *   passed as parameter. The value of temperature needs to be divided by 10
+    *   in order to get the correct value.
+    *   \param hts221 a valid pointer to a ::HTS221_Struct 
+    *   \param timeout timeout for returning if status register not updated
+    *   \return ::HTS221_Error depending on the error generated
+    */
+    HTS221_Error HTS221_MeasureTemperature(HTS221_Struct* hts221, uint16_t timeout);
+    
+    /**
+    *   \brief Perform one-shot humidity measurement.
+    *   
+    *   This function starts a one-shot measurement, waits until the appropriate
+    *   bits in the status register have been set (or the specified timeout has
+    *   expired), and stores the converted and updated humidity value
+    *   in the ::HTS221_Struct passed as parameter. The value of humidity 
+    *   needs to be divided by 10 in order to get the correct value.
+    *   \param hts221 a valid pointer to a ::HTS221_Struct 
+    *   \param timeout timeout for returning if status register not updated
+    *   \return ::HTS221_Error error code
+    *       - HTS221_OK if everything was OK
+    *       - HTS221_ERROR if something went wrong
+    */
+    HTS221_Error HTS221_MeasureHumidity(HTS221_Struct* hts221, uint16_t timeout);
+    
+    /**
+    *   \brief Perform one-shot temperature and humidity measurement.
+    *   
+    *   This function starts a one-shot measurement, waits until the appropriate
+    *   bits in the status register have been set (or the specified timeout has
+    *   expired), and stores the converted and updated temperature and humidity values
+    *   in the ::HTS221_Struct passed as parameter. The values of temperature and humidity 
+    *   need to be divided by 10 in order to get the correct values.
+    *   \param hts221 a valid pointer to a ::HTS221_Struct 
+    *   \param timeout timeout for returning if status register not updated
+    *   \return ::HTS221_Error error code
+    *       - HTS221_OK if everything was OK
+    *       - HTS221_ERROR if something went wrong
+    */
+    HTS221_Error HTS221_MeasureTemperatureHumidity(HTS221_Struct* hts221, uint16_t timeout);
+    
+    /**
+    *   \brief Read and convert temperature value.
+    *   
+    *   This function reads the raw temperature value, converts
+    *   it and stores the converted value in the 
+    *   ::HTS221_Struct passed in as parameter.
+    *   \param hts221 a valid pointer to a ::HTS221_Struct 
+    *   \return ::HTS221_Error error code
+    *       - HTS221_OK if everything was OK
+    *       - HTS221_ERROR if something went wrong
+    */
+    HTS221_Error HTS221_ReadTemperature(HTS221_Struct* hts221);
+
+    /**
+    *   \brief Read and convert humidity value.
+    *   
+    *   This function reads the raw humidity value, converts
+    *   it and stores the converted value in the 
+    *   ::HTS221_Struct passed in as parameter.
+    *   \param hts221 a valid pointer to a ::HTS221_Struct 
+    *   \return ::HTS221_Error error code
+    *       - HTS221_OK if everything was OK
+    *       - HTS221_ERROR if something went wrong
+    */
+    HTS221_Error HTS221_ReadHumidity(HTS221_Struct* hts221);
+    
+    /**
+    *   \brief Read and convert temperature and humidity values.
+    *   
+    *   This function reads the raw temperature and humidity values, converts
+    *   them and stores the converted values in the ::HTS221_Struct passed
+    *   in as parameter.
+    *   \param hts221 a valid pointer to a ::HTS221_Struct 
+    *   \return ::HTS221_Error error code
+    *       - HTS221_OK if everything was OK
+    *       - HTS221_ERROR if something went wrong
+    */
+    HTS221_Error HTS221_ReadTemperatureHumidity(HTS221_Struct* hts221);
+    
+    /**
+    *   \brief Start one-shot acquisition.
     *
     *   This function enables to perform a one-shot acquisition of temperature
     *   and humidity data.
+    *   \return ::HTS221_Error error code
+    *       - HTS221_OK if everything was OK
+    *       - HTS221_ERROR if something went wrong
     */
-    HTS221_Error HTS221_OneShot(void);
-    
+    HTS221_Error HTS221_StartOneShot(void);
+
     /**
     *   \brief Check if a new measurement is ready.
     *
     *   This function checks whether there is a new measurement ready to be read.
+    *   \param meas_ready the function will set this to the appropriate value
+    *       depending on the HTS221 status register.
+    *   \return ::HTS221_Error error code
+    *       - HTS221_OK if everything was OK
+    *       - HTS221_ERROR if something went wrong
     */
-    HTS221_Error HTS221_IsMeasurementReady(HTS221_Struct* hts221);
+    HTS221_Error HTS221_IsMeasurementReady(HTS221_Measurement_Ready* meas_ready);
 
     /**
     *   \brief Set the temperature resolution mode.
@@ -476,7 +607,9 @@
     *   check Table 16 of the device datasheet.
     *   \param hts221 pointer to HTS221 valid struct
     *   \param avgTemp desired value of average temperature samples to be set
-    *   \return ::ErrorCode depending on error generated
+    *   \return ::HTS221_Error error code
+    *       - HTS221_OK if everything was OK
+    *       - HTS221_ERROR if something went wrong
     */
     HTS221_Error HTS221_SetTemperatureResolution(HTS221_Struct* hts221, 
                                             HTS221_AVGTemperature avgTemp);
@@ -490,32 +623,14 @@
     *   check Table 16 of the device datasheet.
     *   \param hts221 pointer to HTS221 valid struct
     *   \param avgHum desired value of average humidity samples to be set
-    *   \return ::ErrorCode depending on error generated
+    *   \return ::HTS221_Error error code
+    *       - HTS221_OK if everything was OK
+    *       - HTS221_ERROR if something went wrong
     */
     HTS221_Error HTS221_SetHumidityResolution(HTS221_Struct* hts221,
                                         HTS221_AVGHumidity avgHum);
     
-    /**
-    *   \brief Read and convert temperature value
-    *   
-    *   This function reads the raw temperature value, converts
-    *   it and stores the converted value it in the 
-    *   ::HTS221_Struct passed in as parameter.
-    *   \param hts221 a valid pointer to a ::HTS221_Struct 
-    *   \return ::ErrorCode depending on the error generated
-    */
-    HTS221_Error HTS221_ReadTemperature(HTS221_Struct* hts221);
-
-    /**
-    *   \brief Read and convert humidity value
-    *   
-    *   This function reads the raw humidity value, converts
-    *   it and stores the converted value it in the 
-    *   ::HTS221_Struct passed in as parameter.
-    *   \param hts221 a valid pointer to a ::HTS221_Struct 
-    *   \return ::HTS221_Error code
-    */
-    HTS221_Error HTS221_ReadHumidity(HTS221_Struct* hts221);
+    
 
     /**
     *   \brief Set the sensor output data rate.
@@ -524,7 +639,9 @@
     *   The choices are defined by the ::HTS221_ODR enum (OneShot, 1, 7, 12.5 Hz).
     *   \param hts221 a valid pointer to a ::HTS221_Struct
     *   \param odr the desired value of output data rate
-    *   \return ::HTS221_Error code
+    *   \return ::HTS221_Error error code
+    *       - HTS221_OK if everything was OK
+    *       - HTS221_ERROR if something went wrong
     */
     HTS221_Error HTS221_SetOutputDataRate(HTS221_Struct* hts221, HTS221_ODR odr);
 
@@ -535,6 +652,9 @@
     *   in the output register. This way, the output registers
     *   are continuously updated regardless of whether the MSB and LSB were
     *   read or not.
+    *   \return ::HTS221_Error error code
+    *       - HTS221_OK if everything was OK
+    *       - HTS221_ERROR if something went wrong
     */
     HTS221_Error HTS221_EnableDataupdate(HTS221_Struct* hts221);
 
@@ -545,6 +665,9 @@
     *   in the output register. This way, the output registers are not 
     *   updated until MSB and LSB reading. Useful it is not certain wheter
     *   the read will be faster than output data rate.
+    *   \return ::HTS221_Error error code
+    *       - HTS221_OK if everything was OK
+    *       - HTS221_ERROR if something went wrong
     */
     HTS221_Error HTS221_BlockDataUpdate(HTS221_Struct* hts221);
 
@@ -552,7 +675,10 @@
     *   \brief Turn on the internal heating element.
     *
     *   This function turns on the internal heating element of the sensor.
-    *   \return ::ErrorCode depending on error generated
+    *   \param hts221 valid pointer to hts221 struct
+    *   \return ::HTS221_Error error code
+    *       - HTS221_OK if everything was OK
+    *       - HTS221_ERROR if something went wrong
     */
     HTS221_Error HTS221_HeaterStart(HTS221_Struct* hts221);
 
@@ -560,40 +686,90 @@
     *   \brief Turn off the internal heating element.
     *
     *   This function turns off the internal heating element of the sensor.
-    *   \return ::ErrorCode depending on error generated   
+    *   \return ::HTS221_Error error code
+    *       - HTS221_OK if everything was OK
+    *       - HTS221_ERROR if something went wrong 
     */
     HTS221_Error HTS221_HeaterStop(HTS221_Struct* hts221);
 
     /**
-    *   \brief Reads calibration coefficients stored in sensor memory.
+    *   \brief Read calibration coefficients stored in sensor memory.
     *
     *   This function reads the calibration coefficients stored in the flash memory
     *   of the sensor.
     *   \param hts221 Pointer to a valid ::HTS221_Struct
-    *   \return ::ErrorCode depending on error generated
+    *   \return ::HTS221_Error error code
+    *       - HTS221_OK if everything was OK
+    *       - HTS221_ERROR if something went wrong
     */
     HTS221_Error HTS221_ReadCalibrationCoefficients(HTS221_Struct* hts221);
     
     /**
-    *   \brief Reboots memory content.
+    *   \brief Reboot memory content.
     *
     *   This function refreshes the content of the internal registers stored in 
     *   the Flash memory block.
-    *   \return ::ErrorCode depending on error generated
+    *   \return ::HTS221_Error error code
+    *       - HTS221_OK if everything was OK
+    *       - HTS221_ERROR if something went wrong
     */
     HTS221_Error HTS221_RebootMemoryContent(void);
     
     /**
-    *   \brief Reboots memory content.
+    *   \brief Read WHO AM I Register
     *
-    *   This function refreshes the content of the internal registers stored in 
-    *   the Flash memory block.
+    *   This function reads the content of the WHO AM I register so that it is 
+    *   possible to check if sensor is properly communicating with the MCU.
     *   \param hts221 pointer to valid HTS221 struct
     *   \param reg_val Pointer to a byte where we will store the value read from the register
-    *   \return ::ErrorCode depending on error generated
+    *   \return ::HTS221_Error error code
+    *       - HTS221_OK if everything was OK
+    *       - HTS221_ERROR if something went wrong
     */
     HTS221_Error HTS221_ReadWhoAmI(HTS221_Struct* hts221, uint8_t* reg_val);
 
+    /****************************/
+    /****** DRDY Settings  ******/
+    /****************************/
+    
+    /**
+    *   \brief Configure DRDY as active low or high.
+    *
+    *   This function allows to configure the DRDY signal as active low or high.
+    *   \param hts221 pointer to valid HTS221 struct
+    *   \param drdy_level desired level value for drdy signal (high or low)
+    *   \return ::HTS221_Error depending on error generated
+    */
+    HTS221_Error HTS221_ConfigureDRDYLevel(HTS221_Struct* hts221, HTS221_DRDY_Level drdy_level);
+    
+    /**
+    *   \brief Configure DRDY Pin.
+    *
+    *   This function allows to configure the DRDY pin as push-pull or open drain.
+    *   \param hts221 pointer to valid HTS221 struct
+    *   \param drdy_config desired configuration value for the pin
+    *   \return ::HTS221_Error depending on error generated
+    */
+    HTS221_Error HTS221_ConfigureDRDYPin(HTS221_Struct* hts221, HTS221_DRDY_Configuration drdy_config);
+    
+    /**
+    *   \brief Enable Data Ready signal.
+    *
+    *   This function allows to enable DRDY signal available on pin 3.
+    *   \param hts221 pointer to valid HTS221 struct
+    *   \return ::HTS221_Error depending on error generated
+    */
+    HTS221_Error HTS221_EnableDRDY(HTS221_Struct* hts221);
+    
+    /**
+    *   \brief Disable Data Ready signal.
+    *
+    *   This function allows to disable DRDY signal available on pin 3.
+    *   \param hts221 pointer to valid HTS221 struct
+    *   \return ::HTS221_Error depending on error generated
+    */
+    HTS221_Error HTS221_DisableDRDY(HTS221_Struct* hts221);
+    
     
 
 #endif

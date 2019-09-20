@@ -13,6 +13,8 @@
 #include "stdio.h"
 #include "HTS221.h"
 
+#include "I2C_Interface.h"
+
 int main(void)
 {
     CyGlobalIntEnable; /* Enable global interrupts. */
@@ -24,53 +26,55 @@ int main(void)
     HTS221_Struct hts221;
     char str[30] = {'\0'};
     
-    HTS221_Start(&hts221);
+    HTS221_Error error = HTS221_Start(&hts221);
+    
+    if ( error != HTS221_OK)
+    {
+        UART_Debug_PutString("HTS221 not configured\r\n");
+    }
+    else
+    {
+        // Configure DRDY pin
+        HTS221_ConfigureDRDYLevel(&hts221, HTS221_DRDY_ACTIVE_HIGH);
+        HTS221_ConfigureDRDYPin(&hts221, HTS221_DRDY_PUSH_PULL);
+        HTS221_EnableDRDY(&hts221);
+        // Set output data rate
+        HTS221_SetOutputDataRate(&hts221, HTS221_ODR_7Hz);
+    }
+    
+    HTS221_Measurement_Ready meas_ready = HTS221_MEAS_NOT_READY;
+    
+    uint8_t temp_value;
+    I2C_Peripheral_ReadRegister(HTS221_I2C_ADDRESS,
+                                HTS221_CTRL_REG_1,
+                                &temp_value);
+    
+    I2C_Peripheral_ReadRegister(HTS221_I2C_ADDRESS,
+                                HTS221_CTRL_REG_2,
+                                &temp_value);
     
     
+    I2C_Peripheral_ReadRegister(HTS221_I2C_ADDRESS,
+                                HTS221_CTRL_REG_3,
+                                &temp_value);
     
-    HTS221_OneShot();
-    CyDelay(100);
-    
-    HTS221_ReadTemperature(&hts221);
-    HTS221_ReadHumidity(&hts221);
-    sprintf(str, "Temp: %d\tHum: %d\r\n", hts221.temperature, hts221.humidity);
-    UART_Debug_PutString(str);
-    CyDelay(1000);
-    
-    HTS221_HeaterStart(&hts221);
-    CyDelay(5000);
-    
-    HTS221_OneShot();
-    CyDelay(100);
-    
-    HTS221_ReadTemperature(&hts221);
-    HTS221_ReadHumidity(&hts221);
-    sprintf(str, "Temp: %d\tHum: %d\r\n", hts221.temperature, hts221.humidity);
-    UART_Debug_PutString(str);
-    CyDelay(1000);
-    
-    HTS221_HeaterStop(&hts221);
-    CyDelay(5000);
-    
-    HTS221_OneShot();
-    CyDelay(100);
-    
-    HTS221_ReadTemperature(&hts221);
-    HTS221_ReadHumidity(&hts221);
-    sprintf(str, "Temp: %d\tHum: %d\r\n", hts221.temperature, hts221.humidity);
-    UART_Debug_PutString(str);
-    CyDelay(1000);
     
     for(;;)
     {
-        HTS221_OneShot();
-        CyDelay(100);
+            
+        if ( error == HTS221_OK ) 
+        {
+            HTS221_IsMeasurementReady(&meas_ready);
+            if (meas_ready == HTS221_MEAS_READY)
+            {
+                HTS221_ReadTemperatureHumidity(&hts221);
+                sprintf(str, "Temp: %d\tHum: %d\r\n",
+                    hts221.temperature,
+                    hts221.humidity);
+                UART_Debug_PutString(str);
+            }
+        }
         
-        HTS221_ReadTemperature(&hts221);
-        HTS221_ReadHumidity(&hts221);
-        sprintf(str, "Temp: %d\tHum: %d\r\n", hts221.temperature, hts221.humidity);
-        UART_Debug_PutString(str);
-        CyDelay(1000);
     }
 }
 
