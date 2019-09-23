@@ -125,14 +125,14 @@
                 {
                     // Continue reading until we have register to read
                     uint8_t counter = register_count;
-                    while(counter>0)
+                    while(counter>1)
                     {
                         data[register_count-counter] =
                             I2C_Peripheral_Name(MasterReadByte)(I2C_ACK);
                         counter--;
                     }
                     // Read last data without acknowledgement
-                    data[register_count-counter]
+                    data[register_count-1]
                         = I2C_Peripheral_Name(MasterReadByte)(I2C_NACK);
                     // Send stop condition and return no error
                     I2C_Peripheral_Name(MasterSendStop)();

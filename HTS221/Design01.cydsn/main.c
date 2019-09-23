@@ -24,13 +24,14 @@ int main(void)
     UART_Debug_PutString("\n\n\n\nHTS221 Start\r\n");
     
     HTS221_Struct hts221;
-    char str[30] = {'\0'};
+    char str[300] = {'\0'};
     
     HTS221_Error error = HTS221_Start(&hts221);
     
     if ( error != HTS221_OK)
     {
-        UART_Debug_PutString("HTS221 not configured\r\n");
+        sprintf(str, "HTS221 not configured. Error: %d\r\n", error);
+        UART_Debug_PutString(str);
     }
     else
     {
@@ -39,42 +40,24 @@ int main(void)
         HTS221_ConfigureDRDYPin(&hts221, HTS221_DRDY_PUSH_PULL);
         HTS221_EnableDRDY(&hts221);
         // Set output data rate
-        HTS221_SetOutputDataRate(&hts221, HTS221_ODR_7Hz);
+        HTS221_SetOutputDataRate(&hts221, HTS221_ODR_1Hz);
     }
     
-    HTS221_Measurement_Ready meas_ready = HTS221_MEAS_NOT_READY;
-    
-    uint8_t temp_value;
-    I2C_Peripheral_ReadRegister(HTS221_I2C_ADDRESS,
-                                HTS221_CTRL_REG_1,
-                                &temp_value);
-    
-    I2C_Peripheral_ReadRegister(HTS221_I2C_ADDRESS,
-                                HTS221_CTRL_REG_2,
-                                &temp_value);
-    
-    
-    I2C_Peripheral_ReadRegister(HTS221_I2C_ADDRESS,
-                                HTS221_CTRL_REG_3,
-                                &temp_value);
-    
+    HTS221_Measurement_Ready meas_ready = HTS221_MEAS_READY;
+        
     
     for(;;)
     {
-            
-        if ( error == HTS221_OK ) 
+        
+        if (error == HTS221_OK && DRDY_Pin_Read() == 1)
         {
-            HTS221_IsMeasurementReady(&meas_ready);
-            if (meas_ready == HTS221_MEAS_READY)
-            {
                 HTS221_ReadTemperatureHumidity(&hts221);
-                sprintf(str, "Temp: %d\tHum: %d\r\n",
+                sprintf(str, "Temp %d\tHum %d\r\n",
                     hts221.temperature,
                     hts221.humidity);
                 UART_Debug_PutString(str);
-            }
+            
         }
-        
     }
 }
 

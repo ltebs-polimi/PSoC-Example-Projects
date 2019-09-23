@@ -256,6 +256,7 @@ HTS221_Error HTS221_ReadTemperatureHumidity(HTS221_Struct* hts221)
 
     // Read raw humidity values
     uint8_t temp_array[4];
+    
     ErrorCode error = I2C_Peripheral_ReadRegisterMulti(HTS221_I2C_ADDRESS,
                                         HTS221_HUMIDITY_OUT_L_REG,
                                         4,
