@@ -1,27 +1,20 @@
-/* ========================================
- *
- * Copyright YOUR COMPANY, THE YEAR
- * All Rights Reserved
- * UNPUBLISHED, LICENSED SOFTWARE.
- *
- * CONFIDENTIAL AND PROPRIETARY INFORMATION
- * WHICH IS THE PROPERTY OF your company.
- *
- * ========================================
+/*
+*   Main file to test the functionality of the HTS221
+*   temperature and relative humidity sensor.
+*   
+*   \author: Davide Marzorati
+*   \date: September 23, 2019
 */
 #include "project.h"
 #include "stdio.h"
 #include "HTS221.h"
-
-#include "I2C_Interface.h"
+#include "Logging.h"
 
 int main(void)
 {
     CyGlobalIntEnable; /* Enable global interrupts. */
-
-    /* Place your initialization/startup code here (e.g. MyInst_Start()) */
-    UART_Debug_Start();
-    UART_Debug_PutString("\n\n\n\nHTS221 Start\r\n");
+    
+    Logging_Start();
     
     HTS221_Struct hts221;
     char str[300] = {'\0'};
@@ -33,6 +26,7 @@ int main(void)
         sprintf(str, "HTS221 not configured. Error: %d\r\n", error);
         UART_Debug_PutString(str);
     }
+    
     else
     {
         // Configure DRDY pin
@@ -42,13 +36,12 @@ int main(void)
         // Set output data rate
         HTS221_SetOutputDataRate(&hts221, HTS221_ODR_1Hz);
     }
-    
-    HTS221_Measurement_Ready meas_ready = HTS221_MEAS_READY;
         
     
+    Logging_PrintHTS221Configuration(&hts221);
+   
     for(;;)
     {
-        
         if (error == HTS221_OK && DRDY_Pin_Read() == 1)
         {
                 HTS221_ReadTemperatureHumidity(&hts221);
