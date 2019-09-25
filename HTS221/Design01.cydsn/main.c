@@ -5,6 +5,12 @@
 *   \author: Davide Marzorati
 *   \date: September 23, 2019
 */
+
+#ifndef HIGH
+    #define HIGH 1
+#endif
+
+
 #include "project.h"
 #include "stdio.h"
 #include "HTS221.h"
@@ -35,14 +41,15 @@ int main(void)
         HTS221_EnableDRDY(&hts221);
         // Set output data rate
         HTS221_SetOutputDataRate(&hts221, HTS221_ODR_1Hz);
+        
+        // Print out HTS221 Configuration
+        Logging_PrintHTS221Configuration(&hts221);
     }
         
-    
-    Logging_PrintHTS221Configuration(&hts221);
    
     for(;;)
     {
-        if (error == HTS221_OK && DRDY_Pin_Read() == 1)
+        if (error == HTS221_OK && DRDY_Pin_Read() == HIGH)
         {
                 HTS221_ReadTemperatureHumidity(&hts221);
                 sprintf(str, "Temp %d\tHum %d\r\n",
