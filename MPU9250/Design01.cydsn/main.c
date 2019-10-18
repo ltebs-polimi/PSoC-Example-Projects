@@ -57,6 +57,7 @@ int main(void)
     // Star the MPU9250
     MPU9250_Start();
     MPU9250_SetAccFS(MPU9250_Acc_FS_2g);
+    
 
     // Read WHO AM I register and compare with the expected value
     uint8_t whoami = MPU9250_ReadWhoAmI();
@@ -67,6 +68,8 @@ int main(void)
     
     for(;;)
     {
+
+        
     }
 }
 
