@@ -23,11 +23,11 @@ int main(void)
     CyGlobalIntEnable; /* Enable global interrupts. */
     
     // Start UART component
-    UART_1_Start();
+    UART_Debug_Start();
     
-    UART_1_PutString("**************\r\n");
-    UART_1_PutString("    MPU9250   \r\n");
-    UART_1_PutString("**************\r\n");
+    UART_Debug_PutString("**************\r\n");
+    UART_Debug_PutString("    MPU9250   \r\n");
+    UART_Debug_PutString("**************\r\n");
     
     // Start I2C component
     I2C_MPU9250_Master_Start();
@@ -41,7 +41,7 @@ int main(void)
     for (int address = 0; address < 128; address++) {
         if (I2C_MPU9250_Master_MasterSendStart(address, 0) == I2C_MPU9250_Master_MSTR_NO_ERROR) {
             sprintf(message, "Found device at: 0x%02x\r\n", address);
-            UART_1_PutString(message);
+            UART_Debug_PutString(message);
         }
         I2C_MPU9250_Master_MasterSendStop();
     }
@@ -62,7 +62,7 @@ int main(void)
     // Read WHO AM I register and compare with the expected value
     uint8_t whoami = MPU9250_ReadWhoAmI();
     sprintf(message, "WHO AM I: 0x%02x - Expected: 0x%02x\r\n", whoami, MPU9250_WHO_AM_I);
-    UART_1_PutString(message);
+    UART_Debug_PutString(message);
     
     MPU9250_ISR_StartEx(MPU9250_DR_ISR);
     
@@ -83,7 +83,7 @@ CY_ISR(MPU9250_DR_ISR) {
     // read data
     MPU9250_ReadAccGyroRaw(&data[1]);
     // send packet over uart
-    UART_1_PutArray(data,14);
+    UART_Debug_PutString(data,14);
     MPU9250_ReadInterruptStatus();
 }
 
