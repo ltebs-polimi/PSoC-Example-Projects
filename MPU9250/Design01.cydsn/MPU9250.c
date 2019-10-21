@@ -573,21 +573,38 @@ void MPU9250_ClearInterruptStatusReg(void) {
 }
 
 void MPU9250_EnableI2CBypass(void) {
+    // Clear bit [5] of MPU9250_USER_CTRL_REG
+    // Read current value
+    uint8_t temp = MPU9250_I2C_Read(MPU9250_I2C_ADDRESS, MPU9250_USER_CTRL_REG);
+    // Clear bit [5]
+    temp &= ~0x20;
+    // Write new value
+    MPU9250_I2C_Write(MPU9250_I2C_ADDRESS, MPU9250_USER_CTRL_REG, temp);   
+    
+    
     // Set bit [1] of MPU9250_INT_PIN_CFG_REG
     // Read current value
-    uint8_t temp = MPU9250_I2C_Read(MPU9250_I2C_ADDRESS, MPU9250_INT_PIN_CFG_REG);
+    temp = MPU9250_I2C_Read(MPU9250_I2C_ADDRESS, MPU9250_INT_PIN_CFG_REG);
     // Set bit[1]
-    temp |= 0x01;
+    temp |= 0x02;
     // Write new value
     MPU9250_I2C_Write(MPU9250_I2C_ADDRESS, MPU9250_INT_PIN_CFG_REG, temp);
 }
 
 void MPU9250_DisableI2CBypass(void) {
+    // Set bit [5] of MPU9250_INT_ENABLE_REG
+    // Read current value
+    uint8_t temp = MPU9250_I2C_Read(MPU9250_I2C_ADDRESS, MPU9250_USER_CTRL_REG);
+    // Set bit [5]
+    temp |= 0x20;
+    // Write new value
+    MPU9250_I2C_Write(MPU9250_I2C_ADDRESS, MPU9250_USER_CTRL_REG, temp); 
+    
     // Clear bit [1] of MPU9250_INT_PIN_CFG_REG
     // Read current value
-    uint8_t temp = MPU9250_I2C_Read(MPU9250_I2C_ADDRESS, MPU9250_INT_ENABLE_REG);
+    temp = MPU9250_I2C_Read(MPU9250_I2C_ADDRESS, MPU9250_INT_ENABLE_REG);
     // Clear bit[1]
-    temp &= ~0x01;
+    temp &= ~0x02;
     // Write new value
     MPU9250_I2C_Write(MPU9250_I2C_ADDRESS, MPU9250_INT_ENABLE_REG, temp);
 }
