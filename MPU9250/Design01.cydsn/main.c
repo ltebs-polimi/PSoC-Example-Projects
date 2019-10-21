@@ -83,7 +83,7 @@ CY_ISR(MPU9250_DR_ISR) {
     // read data
     MPU9250_ReadAccGyroRaw(&data[1]);
     // send packet over uart
-    UART_Debug_PutString(data,14);
+    UART_Debug_PutArray(data,14);
     MPU9250_ReadInterruptStatus();
 }
 
