@@ -942,6 +942,85 @@
     #ifndef MPU9250_ZA_OFFSET_L_REG
         #define MPU9250_ZA_OFFSET_L_REG 0x7E
     #endif
+
+    /*******************************************************/
+    /************   MAGNETOMETER REGISTRER MAP  ************/
+    /**
+    * @brief Magnetometer Device ID registrer.
+    */
+    #ifndef MPU9250_MAG_DEV_ID_REG
+        #define MPU9250_MAG_DEV_ID_REG 0x00
+    #endif
+    
+    /**
+    * @brief Magnetometer Information registrer.
+    */
+    #ifndef MPU9250_MAG_INFO_REG
+        #define MPU9250_MAG_INFO_REG 0x01
+    #endif
+    
+    /**
+    * @brief Magnetometer STATUS 1 registrer.
+    */
+    #ifndef MPU9250_MAG_ST1
+        #define MPU9250_MAG_ST1 0x02
+    #endif
+    
+    /**
+    * @brief Magnetometer x axis out (high byte) registrer.
+    */
+    #ifndef MPU9250_MAG_XOUT_H_REG
+        #define MPU9250_MAG_XOUT_H_REG 0x03
+    #endif
+    
+    /**
+    * @brief Magnetometer x axis out (low byte) registrer.
+    */
+    #ifndef MPU9250_MAG_XOUT_L_REG
+        #define MPU9250_MAG_XOUT_L_REG 0x04
+    #endif
+    
+    /**
+    * @brief Magnetometer y axis out (high byte) registrer.
+    */
+    #ifndef MPU9250_MAG_YOUT_H_REG
+        #define MPU9250_MAG_YOUT_H_REG 0x05
+    #endif
+
+    /**
+    * @brief Magnetometer y axis out (low byte) registrer.
+    */
+    #ifndef MPU9250_MAG_YOUT_L_REG
+        #define MPU9250_MAG_YOUT_L_REG 0x06
+    #endif
+    
+    /**
+    * @brief Magnetometer Z axis out (high byte) registrer.
+    */
+    #ifndef MPU9250_MAG_ZOUT_H_REG
+        #define MPU9250_MAG_ZOUT_H_REG 0x07
+    #endif
+
+    /**
+    * @brief Magnetometer Z axis out (low byte) registrer.
+    */
+    #ifndef MPU9250_MAG_ZOUT_L_REG
+        #define MPU9250_MAG_ZOUT_L_REG 0x08
+    #endif
+    
+    /**
+    * @brief Magnetometer STATUS 2 registrer.
+    */
+    #ifndef MPU9250_MAG_ST2_REG
+        #define MPU9250_MAG_ST2_REG 0x09
+    #endif
+    
+    /**
+    * @brief Magnetometer CONTROL1 reg.
+    */
+    #ifndef MPU9250_MAG_CNTL1_REG
+        #define MPU9250_MAG_CNTL1_REG 0x0A
+    #endif
     
     
 #endif
