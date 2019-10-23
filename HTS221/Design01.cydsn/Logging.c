@@ -1,13 +1,9 @@
-/* ========================================
- *
- * Copyright YOUR COMPANY, THE YEAR
- * All Rights Reserved
- * UNPUBLISHED, LICENSED SOFTWARE.
- *
- * CONFIDENTIAL AND PROPRIETARY INFORMATION
- * WHICH IS THE PROPERTY OF your company.
- *
- * ========================================
+/*
+*   This is the source code for the logging
+*   driver. 
+*
+*   \author Davide Marzorati
+*   \date September 23, 2019
 */
 
 #include "Logging.h"
