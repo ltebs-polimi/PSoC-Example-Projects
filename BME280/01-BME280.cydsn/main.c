@@ -9,8 +9,12 @@
  *
  * ========================================
 */
+
+#include "BME280.h"
+#include "BME280_I2C_Interface.h"
 #include "project.h"
 #include "stdio.h"
+
 int main(void)
 {
     CyGlobalIntEnable; /* Enable global interrupts. */
@@ -27,7 +31,7 @@ int main(void)
     
     for (int i = 0; i < 128; i++)
     {
-        if ( I2C_Master_MasterSendStart(i, I2C_Master_WRITE_XFER_MODE) == I2C_Master_MSTR_NO_ERROR)
+        if ( I2C_Peripheral_IsDeviceConnected(i))
         {
             sprintf(message, "Device 0x%02X connected\r\n", i);
             UART_Debug_PutString(message);
@@ -35,6 +39,11 @@ int main(void)
         I2C_Master_MasterSendStop();
         
     }
+    
+    uint8_t who_am_i_val = BME280_ReadWhoAmI();
+    sprintf(message, "Who Am I Value: 0x%02X\r\n", who_am_i_val);
+    UART_Debug_PutString(message);
+    
     
     for(;;)
     {
