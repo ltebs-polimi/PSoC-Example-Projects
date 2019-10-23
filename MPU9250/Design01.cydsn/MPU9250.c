@@ -175,6 +175,23 @@ void MPU9250_ReadAccGyroRaw(uint8_t* data) {
     MPU9250_I2C_ReadMulti(MPU9250_I2C_ADDRESS, MPU9250_GYRO_XOUT_H_REG, data + 6, 6);
 }
 
+void MPU9250_ReadMag(uint16_t* mag) {
+    
+    uint8_t temp[6];
+    // Get RAW data
+   MPU9250_ReadMagRaw(temp);
+    
+    mag[0] = (temp[0] << 8) | (temp[1] & 0xFF);
+    mag[1] = (temp[2] << 8) | (temp[3] & 0xFF);
+    mag[2] = (temp[4] << 8) | (temp[5] & 0xFF);
+}
+
+void MPU9250_ReadMagRaw(uint8_t* mag) {
+       
+    // Read data via I2C
+    MPU9250_I2C_ReadMulti(AK8963_I2C_ADDRESS, MPU9250_MAG_XOUT_H_REG, mag, 6);
+}
+
 void MPU9250_ReadSelfTestGyro(uint8_t* self_test_gyro) {
     uint8_t temp[6];
     
@@ -607,5 +624,25 @@ void MPU9250_DisableI2CBypass(void) {
     temp &= ~0x02;
     // Write new value
     MPU9250_I2C_Write(MPU9250_I2C_ADDRESS, MPU9250_INT_ENABLE_REG, temp);
+}
+
+void MPU9250_MAG_Enable(void) {
+    
+    // 0x00 = MAG off (default)
+    // 0x01 = MAG on (14-bit output)
+    // 0x02 = Continuous mode 1
+    // 0x11 = MAG on AND 16-bit output
+    MPU9250_I2C_Write(AK8963_I2C_ADDRESS, MPU9250_MAG_CNTL1_REG, 0x11);
+    
+    CyDelay(10);
+    
+}
+
+void MPU9250_MAG_Disable(void) {
+    
+    MPU9250_I2C_Write(AK8963_I2C_ADDRESS, MPU9250_MAG_CNTL1_REG, 0x00);
+    
+    CyDelay(10);
+    
 }
 /* [] END OF FILE */

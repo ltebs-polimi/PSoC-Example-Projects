@@ -38,6 +38,8 @@
     * This is the I2C address of the  AK8963 magnetometer.
     */
     #define AK8963_I2C_ADDRESS 0x0C
+    #define AK8963_I2C_ADDRESS_READ  ((AK8963_I2C_ADDRESS<<1) | 1)
+    #define AK8963_I2C_ADDRESS_WRITE ((AK8963_I2C_ADDRESS<<1) | 0)
     
     /* ========= TYPE DEFS ========= */
     
@@ -159,6 +161,26 @@
     *
     */
     void MPU9250_ReadGyroRaw(uint8_t* gyro);
+    
+    /**
+    * @brief Read magnetometer raw values.
+    *
+    * This function reads the magnetometer values on the three
+    * axis (x, y, and z) and returns the raw values. 
+    * @param[out] mag: magnetometer raw values (xH, xL, yH, yL, zH, zL).
+    *
+    */
+    void MPU9250_ReadMag(uint16_t* mag);
+    
+     /**
+    * @brief Read magnetometer raw values.
+    *
+    * This function reads the magnetometer values on the three
+    * axis (x, y, and z) and returns the raw values. 
+    * @param[out] mag: magnetometer raw values (xH, xL, yH, yL, zH, zL).
+    *
+    */
+    void MPU9250_ReadMagRaw(uint8_t* mag);
     
     /**
     * @brief Read temperature.
@@ -439,6 +461,20 @@
     * is read.
     */
     void MPU9250_ClearInterruptStatusReg(void);
+    
+    /**
+    * @brief Enable the 3-axis magnetometer
+    *
+    * This function enables the built-in 3-axis magnetometer.
+    */
+    void MPU9250_MAG_Enable(void);
+    
+    /**
+    * @brief Disable the 3-axis magnetometer
+    *
+    * This function disables the built-in 3-axis magnetometer.
+    */
+    void MPU9250_MAG_Disable(void);
     
 #endif
 
