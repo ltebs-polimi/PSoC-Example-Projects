@@ -1,25 +1,25 @@
-/* ========================================
- *
- * Copyright YOUR COMPANY, THE YEAR
- * All Rights Reserved
- * UNPUBLISHED, LICENSED SOFTWARE.
- *
- * CONFIDENTIAL AND PROPRIETARY INFORMATION
- * WHICH IS THE PROPERTY OF your company.
- *
- * ========================================
+/*
+*   \file main.c
+*   \brief Main source file for the BME280 Example Project.
+*
+*   This file represents the main source file used for the 01-BME280
+*   PSoC Creator project. It shows how to interact with the BME280
+*   APIs and sends data over UART.
+*
+*   \author Davide Marzorati
+*   \date October 25, 2019
 */
 
 #include "BME280.h"
 #include "BME280_I2C_Interface.h"
+#include "BME280_RegMap.h"
 #include "project.h"
 #include "stdio.h"
 
 int main(void)
 {
     CyGlobalIntEnable; /* Enable global interrupts. */
-
-    /* Place your initialization/startup code here (e.g. MyInst_Start()) */
+    
     I2C_Master_Start();
     UART_Debug_Start();
     
@@ -29,20 +29,22 @@ int main(void)
     
     char message[50];
     
-    for (int i = 0; i < 128; i++)
+    if (BME280_Start() == BME280_OK)
     {
-        if ( I2C_Peripheral_IsDeviceConnected(i))
+        UART_Debug_PutString("Sensor was initialized properly\r\n");
+        
+        uint8_t data[15];
+    
+        I2C_Interface_ReadRegisterMulti(0x76, BME280_CALIB_H_REG_ADDR, 15, data);
+        for (int i = 0; i < 15; i++)
         {
-            sprintf(message, "Device 0x%02X connected\r\n", i);
+            sprintf(message, "Data[%d]: 0x%02X\r\n", i,data[i]);
             UART_Debug_PutString(message);
         }
-        I2C_Master_MasterSendStop();
+        
         
     }
     
-    uint8_t who_am_i_val = BME280_ReadWhoAmI();
-    sprintf(message, "Who Am I Value: 0x%02X\r\n", who_am_i_val);
-    UART_Debug_PutString(message);
     
     
     for(;;)
