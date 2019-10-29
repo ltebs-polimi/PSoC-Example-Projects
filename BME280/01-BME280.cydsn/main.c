@@ -29,19 +29,19 @@ int main(void)
     
     char message[50];
     
-    if (BME280_Start() == BME280_OK)
+    for (int i = 0; i < 128; i++)
     {
-        UART_Debug_PutString("Sensor was initialized properly\r\n");
-        
-        uint8_t data[15];
-    
-        I2C_Interface_ReadRegisterMulti(0x76, BME280_CALIB_H_REG_ADDR, 15, data);
-        for (int i = 0; i < 15; i++)
+        if (BME280_I2C_Interface_IsDeviceConnected(i) == BME280_CONNECTED)
         {
-            sprintf(message, "Data[%d]: 0x%02X\r\n", i,data[i]);
+            sprintf(message, "Device 0x%02X connected\r\n", i);
             UART_Debug_PutString(message);
         }
         
+    }
+    
+    if (BME280_Start() == BME280_OK)
+    {
+        UART_Debug_PutString("Sensor was initialized properly\r\n");
         
     }
     

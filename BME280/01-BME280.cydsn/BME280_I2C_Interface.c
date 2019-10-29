@@ -5,25 +5,10 @@
 *   \author Davide Marzorati
 */
 
-
-/**
-*   \brief Value returned if device present on I2C bus.
-*/
-#ifndef DEVICE_CONNECTED
-    #define DEVICE_CONNECTED 1
-#endif
-
-/**
-*   \brief Value returned if device not present on I2C bus.
-*/
-#ifndef DEVICE_UNCONNECTED
-    #define DEVICE_UNCONNECTED 0
-#endif
-
 #include "BME280_I2C_Interface.h" 
 #include "I2C_Master.h"
 
-ErrorCode I2C_Interface_Start(void) 
+ErrorCode BME280_I2C_Interface_Start(void) 
 {
     // Start I2C peripheral 
     I2C_Master_Start();
@@ -32,7 +17,7 @@ ErrorCode I2C_Interface_Start(void)
 }
 
 
-ErrorCode I2C_Interface_Stop(void)
+ErrorCode BME280_I2C_Interface_Stop(void)
 {
     // Stop I2C peripheral
     I2C_Master_Stop();
@@ -40,7 +25,7 @@ ErrorCode I2C_Interface_Stop(void)
     return NO_ERROR;
 }
 
-ErrorCode I2C_Interface_ReadRegister(uint8_t device_address, 
+ErrorCode BME280_I2C_Interface_ReadRegister(uint8_t device_address, 
                                         uint8_t register_address,
                                         uint8_t* data)
 {
@@ -70,7 +55,7 @@ ErrorCode I2C_Interface_ReadRegister(uint8_t device_address,
     return BAD_PARAMETER;
 }
 
-ErrorCode I2C_Interface_ReadRegisterMulti(uint8_t device_address,
+ErrorCode BME280_I2C_Interface_ReadRegisterMulti(uint8_t device_address,
                                             uint8_t register_address,
                                             uint8_t register_count,
                                             uint8_t* data)
@@ -111,7 +96,7 @@ ErrorCode I2C_Interface_ReadRegisterMulti(uint8_t device_address,
     return BAD_PARAMETER;
 }
 
-ErrorCode I2C_Interface_WriteRegister(uint8_t device_address,
+ErrorCode BME280_I2C_Interface_WriteRegister(uint8_t device_address,
                                         uint8_t register_address,
                                         uint8_t data)
 {
@@ -140,7 +125,7 @@ ErrorCode I2C_Interface_WriteRegister(uint8_t device_address,
     return BAD_PARAMETER;
 }
 
-ErrorCode I2C_Interface_WriteRegisterMulti(uint8_t device_address,
+ErrorCode BME280_I2C_Interface_WriteRegisterMulti(uint8_t device_address,
                                         uint8_t register_address,
                                         uint8_t register_count,
                                         uint8_t* data)
@@ -180,7 +165,7 @@ ErrorCode I2C_Interface_WriteRegisterMulti(uint8_t device_address,
 }
 
 
-uint8_t I2C_Interface_IsDeviceConnected(uint8_t device_address)
+uint8_t BME280_I2C_Interface_IsDeviceConnected(uint8_t device_address)
 {
     // Send a start condition followed by a stop condition
     uint8_t error = I2C_Master_MasterSendStart(device_address, I2C_Master_WRITE_XFER_MODE);
@@ -188,9 +173,9 @@ uint8_t I2C_Interface_IsDeviceConnected(uint8_t device_address)
     // If no error generated during stop, device is connected
     if (error == I2C_Master_MSTR_NO_ERROR)
     {
-        return DEVICE_CONNECTED;
+        return BME280_CONNECTED;
     }
-    return DEVICE_UNCONNECTED;
+    return BME280_UNCONNECTED;
 }
 
 /* [] END OF FILE */
