@@ -16,6 +16,7 @@ values from the MPU9250 IMU
 - [TMUX1208](https://github.com/dado93/PSoC-Example-Projects/tree/master/TMUX1208): project showing how to interface the PSoC 5LP with a TMUX1208.
 - [I2C](https://github.com/dado93/PSoC-Example-Projects/tree/master/I2C_MasterSlave): project showing how I2C communication can be established between a PSoC 5LP and a PSoC 6
 - [HTS221](https://github.com/dado93/PSoC-Example-Projects/tree/master/HTS221): project showing how to communicate with a HTS221 temperature and relative humidity sensor using the I2C protocol. This project also implements some software design patterns for embedded systems.
+- [BME280](https://github.com/dado93/PSoC-Example-Projects/tree/master/BME280): project with a full driver for the BME280 temperature, pressure, and humidity sensor.
 
 ## Future projects:
 - ~~EEPROM~~
