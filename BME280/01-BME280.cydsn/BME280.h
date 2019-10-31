@@ -32,6 +32,54 @@
         #define BME280_WHO_AM_I 0x60
     #endif
     
+    /**
+    *   \brief Macro for pressure compensation selection
+    *
+    *   This macro can be used with the provided API to 
+    *   select the compensation of the pressure data
+    */
+    #ifndef BME280_PRESS_COMP
+        #define BME280_PRESS_COMP 1
+    #endif
+    
+    /**
+    *   \brief Macro for temprature compensation selection
+    *
+    *   This macro can be used with the provided API to 
+    *   select the compensation of the temperature data.
+    */
+    #ifndef BME280_TEMP_COMP
+        #define BME280_TEMP_COMP 1 << 1
+    #endif
+    
+    /**
+    *   \brief Macro for humidity compensation selection
+    *
+    *   This macro can be used with the provided API to 
+    *   select the compensation of the humidity data.
+    */
+    #ifndef BME280_HUM_COMP
+        #define BME280_HUM_COMP 1 << 2
+    #endif
+    
+    /**
+    *   \brief Macro for compensation selection
+    *
+    *   This macro can be used with the provided API to 
+    *   select the compensation of the all (temperature, pressure,
+    *   and humidity) data.
+    */
+    #ifndef BME280_ALL_COMP
+        #define BME280_ALL_COMP 0x07
+    #endif
+    
+    /**
+    *   \brief Macro for status register check
+    */
+    #ifndef BM280_STATUS_IM_UPDATE
+        #define BME280_STATUS_IM_UPDATE 0x01
+    #endif
+    
     /******************************************/
     /*              Typedefs                  */
     /******************************************/
@@ -107,6 +155,7 @@
         int16_t  dig_H4;    ///< Humidity calibration coefficient H4
         int16_t  dig_H5;    ///< Humidity calibration coefficient H5
         int8_t   dig_H6;    ///< Humidity calibration coefficient H6
+        int32_t  t_fine;    ///< Fine temperature value
     } BME280_Calib_Data;
     
     /**
@@ -147,12 +196,14 @@
         uint8_t osr_h;       ///< Humidity oversampling setting
         uint8_t filter;      ///< Filter setting
         uint8_t stanby_time; ///< Standby time setting
+        uint8_t spi_enable;  ///< SPI enabled
     } BME280_Settings;
     
     /**
     *   \brief BME280 Device structure that holds sensor settings and data.
     */
     typedef struct {
+        uint8_t chip_id;                ///< Chip id of the device
         BME280_Calib_Data calib_data;   ///< Structure for calibration data
         BME280_Data data;               ///< Structure for sensor data
         BME280_Uncomp_Data uncomp_data; ///< Structure for uncompensated data
@@ -176,7 +227,7 @@
     *   \retval BME280_ERROR -> Generic error
     *   \retval BME280_OK -> Success
     */
-    BME280_ErrorCode BME280_Start(void);
+    BME280_ErrorCode BME280_Start(BME280* bme280);
     
     /**
     *   \brief Reset the sensor.
@@ -192,16 +243,55 @@
     BME280_ErrorCode BME280_Reset(void);
     
     /**
-    *   \brief Read Who Am I register value.
+    *   \brief Read pressure, temperature and humidity from the sensor, compensate 
+    *   them and store in device structures.
     *
-    *   This function reads the value of the Who Am I register.
-    *   If everything is set up correctly, you should read 0x60
-    *   \return Result of function execution 
-    *   \retval BME280_I2C_ERROR -> Error during I2C communication
-    *   \retval BME280_ERROR -> Generic error
+    *   This function reads the pressure, temperature, and humidity values from the
+    *   sensor, compensates them using the factory calibration data, and stores them
+    *   in the device structure with the pointer passed as argument.
+    *
+    *   The value of sensor_comp determines which data to compensate:
+    *
+    *    sensor_comp |   Macros
+    *   -------------|-------------------
+    *        1       | BME280_PRESS
+    *        2       | BME280_TEMP
+    *        4       | BME280_HUM
+    *        7       | BME280_ALL
+    *   \param[in] bme280 : pointer to device structure
+    *   \param[in] sensor_comp : flag to select which data to be compensated
+    *   \return Result of function execution
     *   \retval BME280_OK -> Success
+    *   \retval BME280_I2C_ERROR -> Error during I2C communication
     */
-    BME280_ErrorCode BME280_ReadWhoAmI(uint8_t* value);
+    BME280_ErrorCode BME280_ReadData(BME280* bme280, uint8_t sensor_comp);
+    
+    /**
+    *   \brief Parse pressure, temperature, and humidity data.
+    *
+    *   This function parses pressure, temperature, and humidity data
+    *   and stores them in the device structure.
+    *   \param[in] bme280 : Pointer to device struct
+    *   \param[in] reg_data : Array with unparsed sensor data
+    */
+    void BME280_ParseSensorData(BME280* bme280, uint8_t* reg_data);
+    
+    /**
+    *   \brief Compensate pressure and/or temperature and/or humidity data.
+    *
+    *   This function can be used to compensated the data of pressure and/or
+    *   temperature and/or humidity according to the value of parameter sensor_comp.
+    *
+    *   \param[in] bme280 : pointer to device structure
+    *   \param[in] sensor_comp : variable to select which values to compensate
+    *
+    *   \return Result of function execution
+    *   \retval BME280_OK -> Success
+    *   \retval BME280_ERROR -> Error
+    */
+    BME280_ErrorCode BME280_CompensateData(BME280* bme280, uint8_t sensor_comp);
+    
+    BME280_ErrorCode BME280_GetSensorMode(BME280* bme280, uint8_t* sensor_mode);
     
     /**
     *   \brief Set humidity oversampling value.
@@ -217,7 +307,7 @@
     *   \retval BME280_ERROR -> Generic error
     *   \retval BME280_OK -> Success
     */
-    BME280_ErrorCode BME280_SetHumidityOversampling(BME280_Oversampling hos);
+    BME280_ErrorCode BME280_SetHumidityOversampling(BME280* bme280, BME280_Oversampling hos);
     
     /**
     *   \brief Set temperature oversampling value.
@@ -231,7 +321,7 @@
     *   \retval BME280_ERROR -> Generic error
     *   \retval BME280_OK -> Success
     */
-    BME280_ErrorCode BME280_SetTemperatureOversampling(BME280_Oversampling tos);
+    BME280_ErrorCode BME280_SetTemperatureOversampling(BME280* bme280, BME280_Oversampling tos);
     
     /**
     *   \brief Set pressure oversampling value.
@@ -245,7 +335,7 @@
     *   \retval BME280_ERROR -> Generic error
     *   \retval BME280_OK -> Success
     */
-    BME280_ErrorCode BME280_SetPressureOversampling(BME280_Oversampling pos);
+    BME280_ErrorCode BME280_SetPressureOversampling(BME280* bme280, BME280_Oversampling pos);
     
     
     /**
@@ -253,12 +343,13 @@
     *
     *   This function reads the #BME280_STATUS_REG_ADDR, that contains two bit ([3] and [0])
     *   which indicate the status of the device.
+    *   \param[in] value : Value read from the status register
     *   \return Result of function execution 
     *   \retval BME280_I2C_ERROR -> Error during I2C communication
     *   \retval BME280_ERROR -> Generic error
     *   \retval BME280_OK -> Success
     */
-    BME280_ErrorCode BME280_ReadStatusRegister(void);
+    BME280_ErrorCode BME280_ReadStatusRegister(uint8_t* value);
     
     /**
     *   \brief Set device in sleep mode.
@@ -270,7 +361,7 @@
     *   \retval BME280_ERROR -> Generic error
     *   \retval BME280_OK -> Success
     */
-    BME280_ErrorCode BME280_SetSleepMode(void);
+    BME280_ErrorCode BME280_SetSleepMode(BME280* bme280);
     
     /**
     *   \brief Set device in forced mode.
@@ -282,7 +373,7 @@
     *   \retval BME280_ERROR -> Generic error
     *   \retval BME280_OK -> Success
     */
-    BME280_ErrorCode BME280_SetForcedMode(void);
+    BME280_ErrorCode BME280_SetForcedMode(BME280* bme280);
     
     /**
     *   \brief Set device in normal mode.
@@ -294,7 +385,7 @@
     *   \retval BME280_ERROR -> Generic error
     *   \retval BME280_OK -> Success
     */
-    BME280_ErrorCode BME280_SetNormalMode(void);
+    BME280_ErrorCode BME280_SetNormalMode(BME280* bme280);
     
     /**
     *   \brief Set the value of TStandby.
@@ -307,7 +398,7 @@
     *   \retval BME280_ERROR -> Generic error
     *   \retval BME280_OK -> Success
     */
-    BME280_ErrorCode BME280_SetStandbyTime(BME280_TStandby tStandby);
+    BME280_ErrorCode BME280_SetStandbyTime(BME280* bme280, BME280_TStandby tStandby);
     
     /**
     *   \brief Set the value of IIR Filter time constant.
@@ -320,7 +411,7 @@
     *   \retval BME280_ERROR -> Generic error
     *   \retval BME280_OK -> Success
     */
-    BME280_ErrorCode BME280_SetIIRFilter(BME280_Filter filter);
+    BME280_ErrorCode BME280_SetIIRFilter(BME280* bme280, BME280_Filter filter);
     
     /**
     *   \brief Enable the SPI interface of the sensor.
@@ -331,7 +422,7 @@
     *   \retval BME280_ERROR -> Generic error
     *   \retval BME280_OK -> Success
     */
-    BME280_ErrorCode BME280_EnableSPI(void);
+    BME280_ErrorCode BME280_EnableSPI(BME280* bme280);
     
     /**
     *   \brief Disable the SPI Interface
@@ -342,7 +433,7 @@
     *   \retval BME280_ERROR -> Generic error
     *   \retval BME280_OK -> Success
     */
-    BME280_ErrorCode BME280_DisableSPI(void);
+    BME280_ErrorCode BME280_DisableSPI(BME280* bme280);
 #endif
 
 

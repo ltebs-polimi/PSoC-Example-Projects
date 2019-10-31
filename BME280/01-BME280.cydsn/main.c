@@ -19,8 +19,6 @@
 int main(void)
 {
     CyGlobalIntEnable; /* Enable global interrupts. */
-    
-    I2C_Master_Start();
     UART_Debug_Start();
     
     UART_Debug_PutString("************************\r\n");
@@ -28,10 +26,18 @@ int main(void)
     UART_Debug_PutString("************************\r\n");
     
     char message[50];
+    BME280 bme280;
+    uint8_t data_array[12] = {0};
+    uint8_t status_reg = 0;
+    
+    data_array[0] = 0x0A;
+    data_array[1] = 0x0D;
+    data_array[10] = 0xA0;
+    data_array[11] = 0xC0;
     
     for (int i = 0; i < 128; i++)
     {
-        if (BME280_I2C_Interface_IsDeviceConnected(i) == BME280_CONNECTED)
+        if (BME280_I2C_Interface_IsDeviceConnected(i) == BME280_OK)
         {
             sprintf(message, "Device 0x%02X connected\r\n", i);
             UART_Debug_PutString(message);
@@ -39,17 +45,36 @@ int main(void)
         
     }
     
-    if (BME280_Start() == BME280_OK)
+    if (BME280_Start(&bme280) == BME280_OK)
     {
         UART_Debug_PutString("Sensor was initialized properly\r\n");
-        
+        if (BME280_SetNormalMode(&bme280) == BME280_OK)
+        {
+            BME280_SetHumidityOversampling(&bme280, BME280_OVERSAMPLING_16X);
+            BME280_SetTemperatureOversampling(&bme280, BME280_OVERSAMPLING_1X);
+            BME280_SetPressureOversampling(&bme280, BME280_OVERSAMPLING_1X);
+            BME280_SetStandbyTime(&bme280, BME280_TSTANBDY_500_MS);
+            
+        }
     }
-    
-    
     
     for(;;)
     {
         /* Place your application code here. */
+        if (BME280_ReadData(&bme280, BME280_TEMP_COMP | BME280_PRESS_COMP) == BME280_OK)
+        {
+            sprintf(message, "T: %ld P: %ld H: %ld \r\n", bme280.data.temperature,
+                bme280.data.pressure, bme280.data.humidity);
+            UART_Debug_PutString(message);
+            
+        }
+        else
+        {
+            UART_Debug_PutString("Error\r\n");
+        }
+        
+        CyDelay(1000);
+
     }
 }
 

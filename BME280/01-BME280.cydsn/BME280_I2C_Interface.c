@@ -5,27 +5,28 @@
 *   \author Davide Marzorati
 */
 
+#include "BME280_ErrorCodes.h"
 #include "BME280_I2C_Interface.h" 
 #include "I2C_Master.h"
 
-ErrorCode BME280_I2C_Interface_Start(void) 
+BME280_ErrorCode BME280_I2C_Interface_Start(void) 
 {
     // Start I2C peripheral 
     I2C_Master_Start();
     // Return no error since start function does not return any error
-    return NO_ERROR;
+    return BME280_OK;
 }
 
 
-ErrorCode BME280_I2C_Interface_Stop(void)
+BME280_ErrorCode BME280_I2C_Interface_Stop(void)
 {
     // Stop I2C peripheral
     I2C_Master_Stop();
     // Return no error since stop function does not return any error
-    return NO_ERROR;
+    return BME280_OK;
 }
 
-ErrorCode BME280_I2C_Interface_ReadRegister(uint8_t device_address, 
+BME280_ErrorCode BME280_I2C_Interface_ReadRegister(uint8_t device_address, 
                                         uint8_t register_address,
                                         uint8_t* data)
 {
@@ -43,19 +44,18 @@ ErrorCode BME280_I2C_Interface_ReadRegister(uint8_t device_address,
             {
                 // Read data without acknowledgement
                 *data = I2C_Master_MasterReadByte(I2C_Master_NAK_DATA);
-                // Send stop condition and return no error
-                I2C_Master_MasterSendStop();
-                return NO_ERROR;
             }
         }
     }
-    // Send stop condition if something went wrong
+    // Send stop condition
     I2C_Master_MasterSendStop();
     // Return error code
-    return BAD_PARAMETER;
+    if ( error != I2C_Master_MSTR_NO_ERROR)
+        return  BME280_E_COMM_FAIL;
+    return BME280_OK;
 }
 
-ErrorCode BME280_I2C_Interface_ReadRegisterMulti(uint8_t device_address,
+BME280_ErrorCode BME280_I2C_Interface_ReadRegisterMulti(uint8_t device_address,
                                             uint8_t register_address,
                                             uint8_t register_count,
                                             uint8_t* data)
@@ -84,19 +84,18 @@ ErrorCode BME280_I2C_Interface_ReadRegisterMulti(uint8_t device_address,
                 // Read last data without acknowledgement
                 data[register_count-1]
                     = I2C_Master_MasterReadByte(I2C_Master_NAK_DATA);
-                // Send stop condition and return no error
-                I2C_Master_MasterSendStop();
-                return NO_ERROR;
             }
         }
     }
-    // Send stop condition if something went wrong
+    // Send stop condition
     I2C_Master_MasterSendStop();
     // Return error code
-    return BAD_PARAMETER;
+    if ( error != I2C_Master_MSTR_NO_ERROR)
+        return  BME280_E_COMM_FAIL;
+    return BME280_OK;
 }
 
-ErrorCode BME280_I2C_Interface_WriteRegister(uint8_t device_address,
+BME280_ErrorCode BME280_I2C_Interface_WriteRegister(uint8_t device_address,
                                         uint8_t register_address,
                                         uint8_t data)
 {
@@ -110,22 +109,17 @@ ErrorCode BME280_I2C_Interface_WriteRegister(uint8_t device_address,
         {
             // Write byte of interest
             error = I2C_Master_MasterWriteByte(data);
-            if (error == I2C_Master_MSTR_NO_ERROR)
-            {
-                // Send stop condition
-                I2C_Master_MasterSendStop();
-                // Return with no error
-                return NO_ERROR;
-            }
         }
     }
-    // Send stop condition in case something didn't work out correctly
+    // Send stop condition 
     I2C_Master_MasterSendStop();
     // Return error code
-    return BAD_PARAMETER;
+    if ( error != I2C_Master_MSTR_NO_ERROR)
+        return  BME280_E_COMM_FAIL;
+    return BME280_OK;
 }
 
-ErrorCode BME280_I2C_Interface_WriteRegisterMulti(uint8_t device_address,
+BME280_ErrorCode BME280_I2C_Interface_WriteRegisterMulti(uint8_t device_address,
                                         uint8_t register_address,
                                         uint8_t register_count,
                                         uint8_t* data)
@@ -142,40 +136,37 @@ ErrorCode BME280_I2C_Interface_WriteRegisterMulti(uint8_t device_address,
             uint8_t counter = register_count;
             while(counter >= 0)
             {
-                 error =
-                    I2C_Master_MasterWriteByte(data[register_count-counter]);
+                error = I2C_Master_MasterWriteByte(data[register_count-counter]);
                 if (error != I2C_Master_MSTR_NO_ERROR)
                 {
-                    // Send stop condition
-                    I2C_Master_MasterSendStop();
-                    // Return error code
-                    return BAD_PARAMETER;
+                    break;
                 }
                 counter--;
             }
-            // Send stop condition and return no error
-            I2C_Master_MasterSendStop();
-            return NO_ERROR;
         }
     }
-    // Send stop condition in case something didn't work out correctly
+    // Send stop condition
     I2C_Master_MasterSendStop();
     // Return error code
-    return BAD_PARAMETER;
+    if ( error != I2C_Master_MSTR_NO_ERROR)
+        return  BME280_E_COMM_FAIL;
+    return BME280_OK;
 }
 
 
-uint8_t BME280_I2C_Interface_IsDeviceConnected(uint8_t device_address)
+BME280_ErrorCode BME280_I2C_Interface_IsDeviceConnected(uint8_t device_address)
 {
+    BME280_ErrorCode rslt = BME280_OK;
     // Send a start condition followed by a stop condition
-    uint8_t error = I2C_Master_MasterSendStart(device_address, I2C_Master_WRITE_XFER_MODE);
+    uint8_t error = I2C_Master_MasterSendStart(device_address, 
+        I2C_Master_WRITE_XFER_MODE);
     I2C_Master_MasterSendStop();
-    // If no error generated during stop, device is connected
-    if (error == I2C_Master_MSTR_NO_ERROR)
+    // If no error generated during start, device is connected
+    if (error != I2C_Master_MSTR_NO_ERROR)
     {
-        return BME280_CONNECTED;
+        rslt = BME280_E_DEV_NOT_FOUND;
     }
-    return BME280_UNCONNECTED;
+    return rslt;
 }
 
 /* [] END OF FILE */

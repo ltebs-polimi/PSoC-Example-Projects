@@ -226,23 +226,23 @@
     #endif
     
     /**
-    *   \brief High calibration register.
+    *   \brief Temperature and pressure calibration register.
     *
-    *   This is the base register address where calibration values are stored. The registers addresses
-    *   are from 0xF0 to 0xE1.
+    *   This is the base register address where temperature and pressure 
+    *   calibration values are stored. The registers addresses are from 0xF0 to 0xE1.
     */
-    #ifndef BME280_CALIB_H_REG_ADDR
-        #define BME280_CALIB_H_REG_ADDR 0xF0
+    #ifndef BME280_CALIB_TEMP_PRESS_REG_ADDR
+        #define BME280_CALIB_TEMP_PRESS_REG_ADDR 0x88
     #endif
 
     /**
-    *   \brief Low calibration register.
+    *   \brief Humidity calibration register.
     *
-    *   This is the base register address where calibration values are stored. The registers addresses
-    *   are from 0xA1 to 0x88.
+    *   This is the base register address where humidity calibration values
+    *   are stored. The registers addresses are from 0xA1 to 0x88.
     */
-    #ifndef BME280_CALIB_L_REG_ADDR
-        #define BME280_CALIB_L_REG_ADDR 0xA1
+    #ifndef BME280_CALIB_HUM_REG_ADDR
+        #define BME280_CALIB_HUM_REG_ADDR 0xE1
     #endif
     
 #endif

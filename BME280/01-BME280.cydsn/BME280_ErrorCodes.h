@@ -12,17 +12,47 @@
 #ifndef __BME280_ERRORCODES_H
     #define __BME280_ERRORCODES_H
 
+    #include "cytypes.h"
+
     /**
-    *   \brief Error Codes for BME280 functions.
-    *
-    *   This is a list of error codes that may be returned by the
-    *   BME280 Interface.
+    *   \brief Success code returned by functions.
     */
-    typedef enum {
-        BME280_I2C_ERROR,        ///< Error during I2C communication with the sensor
-        BME280_DEVICE_NOT_FOUND, ///< Device was not found on I2C bus.
-        BME280_ERROR,            ///< Generic error
-        BME280_OK                ///< No error generated
-    } BME280_ErrorCode;
+    #define BME280_OK                    0
+    
+    /**
+    *   \brief Null pointer error.
+    */
+    #define BME280_E_NULL_PTR           -1
+    
+    /**
+    *   \brief Device not found error.
+    */
+    #define BME280_E_DEV_NOT_FOUND      -2
+    
+    /**
+    *   \brief Invalid length error.
+    */
+    #define BME280_E_INVALID_LEN        -3
+    
+    /**
+    *   \brief Communication error.
+    */
+    #define BME280_E_COMM_FAIL          -4
+    
+    /**
+    *   \brief Sleep mode failed error.
+    */
+    #define BME280_E_SLEEP_MODE_FAIL    -5
+    
+    /**
+    *   \brief NVM copy error.
+    */
+    #define BME280_E_NVM_COPY_FAILED    -6
+    
+    /**
+    *   \brief Typedefs for error codes returned by functions.
+    */
+    typedef int8_t BME280_ErrorCode;
+    
 #endif
 /* [] END OF FILE */
