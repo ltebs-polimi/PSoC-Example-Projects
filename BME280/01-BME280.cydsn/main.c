@@ -71,6 +71,15 @@ int main(void)
         else
         {
             UART_Debug_PutString("Error\r\n");
+            BME280_Reset();
+            if (BME280_SetNormalMode(&bme280) == BME280_OK)
+            {
+                BME280_SetHumidityOversampling(&bme280, BME280_OVERSAMPLING_16X);
+                BME280_SetTemperatureOversampling(&bme280, BME280_OVERSAMPLING_1X);
+                BME280_SetPressureOversampling(&bme280, BME280_OVERSAMPLING_1X);
+                BME280_SetStandbyTime(&bme280, BME280_TSTANBDY_500_MS);
+                
+            }
         }
         
         CyDelay(1000);
