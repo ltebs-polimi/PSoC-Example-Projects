@@ -89,7 +89,7 @@
     *   This enum contains all the possible values of Pressure oversampling.
     */
     typedef enum {
-        BME280_NO_OVERSAMPLING,  ///< Oversampling skipped, output set to 0x8000
+        BME280_NO_OVERSAMPLING,       ///< Oversampling skipped, output set to 0x8000
         BME280_OVERSAMPLING_1X,       ///< Temperature oversampling x1
         BME280_OVERSAMPLING_2X,       ///< Temperature oversampling x2
         BME280_OVERSAMPLING_4X,       ///< Temperature oversampling x4
@@ -222,6 +222,8 @@
     *   acknowledged by the sensor. Then, it also reads the value of the
     *   #BME280_WHO_AM_I_REG_ADDR to check if the value is the expected one.
     *
+    *   \param[in] bme280 : Pointer to device struct
+    *
     *   \return Result of function execution 
     *   \retval BME280_I2C_ERROR -> Error during I2C communication
     *   \retval BME280_ERROR -> Generic error
@@ -235,12 +237,15 @@
     *   This function reset the sensor by writing a 0xB6 value to the 
     *   reset register. The reset is performed using the complete
     *   power-on reset procedure. 
+    *
+    *
+    *   \param[in] bme280 : pointer to device struct
     *   \return Result of function execution 
     *   \retval BME280_I2C_ERROR -> Error during I2C communication
     *   \retval BME280_ERROR -> Generic error
     *   \retval BME280_OK -> Success
     */
-    BME280_ErrorCode BME280_Reset(void);
+    BME280_ErrorCode BME280_Reset(BME280* bme280);
     
     /**
     *   \brief Read pressure, temperature and humidity from the sensor, compensate 
@@ -258,8 +263,10 @@
     *        2       | BME280_TEMP
     *        4       | BME280_HUM
     *        7       | BME280_ALL
+    *
     *   \param[in] bme280 : pointer to device structure
     *   \param[in] sensor_comp : flag to select which data to be compensated
+    *
     *   \return Result of function execution
     *   \retval BME280_OK -> Success
     *   \retval BME280_I2C_ERROR -> Error during I2C communication
@@ -271,6 +278,7 @@
     *
     *   This function parses pressure, temperature, and humidity data
     *   and stores them in the device structure.
+    *
     *   \param[in] bme280 : Pointer to device struct
     *   \param[in] reg_data : Array with unparsed sensor data
     */
@@ -291,7 +299,18 @@
     */
     BME280_ErrorCode BME280_CompensateData(BME280* bme280, uint8_t sensor_comp);
     
-    BME280_ErrorCode BME280_GetSensorMode(BME280* bme280, uint8_t* sensor_mode);
+    /**
+    *   \brief Get current sensor mode.
+    *
+    *   This function retrieves the current sensor mode. The value is updated in
+    *   the device struct.
+    *
+    *   \param[in] Pointer to device struct.
+    *   \return Result of function execution
+    *   \retval BME280_OK -> Success
+    *   \retval BME280_ERROR -> Error
+    */
+    BME280_ErrorCode BME280_GetSensorMode(BME280* bme280);
     
     /**
     *   \brief Set humidity oversampling value.
@@ -301,7 +320,9 @@
     *   performs a write operation to the #BME280_CTRL_MEAS_REG_ADDR register
     *   because otherwise the changes won't become effective
     *
-    *   \param hos new value of #BME280_Oversampling
+    *   \param[in] hos : new value of #BME280_Oversampling
+    *   \param[in] bme280 : pointer to device struct
+    *
     *   \return Result of function execution 
     *   \retval BME280_I2C_ERROR -> Error during I2C communication
     *   \retval BME280_ERROR -> Generic error
@@ -315,7 +336,9 @@
     *   This function sets the value of temperature oversampling by setting the 
     *   appropriate bits in the #BME280_CTRL_MEAS_REG_ADDR register. 
     *
-    *   \param tos new value of #BME280_Oversampling
+    *   \param[in] bme280 : pointer to device struct
+    *   \param[in] tos : new value of #BME280_Oversampling
+    *
     *   \return Result of function execution 
     *   \retval BME280_I2C_ERROR -> Error during I2C communication
     *   \retval BME280_ERROR -> Generic error
@@ -329,7 +352,8 @@
     *   This function sets the value of pressure oversampling by setting the 
     *   appropriate bits in the #BME280_CTRL_MEAS_REG_ADDR register. 
     *
-    *   \param pos new value of #BME280_Oversampling
+    *   \param[in] bme280 : pointer to device struct
+    *   \param[in] pos : new value of #BME280_Oversampling
     *   \return Result of function execution 
     *   \retval BME280_I2C_ERROR -> Error during I2C communication
     *   \retval BME280_ERROR -> Generic error
@@ -343,7 +367,9 @@
     *
     *   This function reads the #BME280_STATUS_REG_ADDR, that contains two bit ([3] and [0])
     *   which indicate the status of the device.
-    *   \param[in] value : Value read from the status register
+    *
+    *   \param[out] value : Value read from the status register
+    *
     *   \return Result of function execution 
     *   \retval BME280_I2C_ERROR -> Error during I2C communication
     *   \retval BME280_ERROR -> Generic error
@@ -356,6 +382,9 @@
     *
     *   This function sets the device in sleep mode by setting the appropriate
     *   bits in the #BME280_CTRL_MEAS_REG_ADDR.
+    *
+    *   \param[in] bme280 : pointer to device struct
+    *   
     *   \return Result of function execution 
     *   \retval BME280_I2C_ERROR -> Error during I2C communication
     *   \retval BME280_ERROR -> Generic error
@@ -368,6 +397,9 @@
     *
     *   This function sets the device in forced mode by setting the appropriate
     *   bits in the #BME280_CTRL_MEAS_REG_ADDR.
+    *
+    *   \param[in] bme280 : pointer to device struct
+    *
     *   \return Result of function execution 
     *   \retval BME280_I2C_ERROR -> Error during I2C communication
     *   \retval BME280_ERROR -> Generic error
@@ -380,6 +412,9 @@
     *
     *   This function sets the device in normal mode by setting the appropriate
     *   bits in the #BME280_CTRL_MEAS_REG_ADDR.
+    *
+    *   \param[in] bme280 : pointer to device struct
+    *
     *   \return Result of function execution 
     *   \retval BME280_I2C_ERROR -> Error during I2C communication
     *   \retval BME280_ERROR -> Generic error
@@ -393,12 +428,16 @@
     *   This function sets the new value for the inactive time (TStandby)
     *   during the normal mode. For futher information see the documentation
     *   for the register #BME280_CONFIG_REG_ADDR
+    *
+    *   \param[in] bme280 : pointer to device struct
+    *   \param[in] t_standby : stanby time 
+    *
     *   \return Result of function execution 
     *   \retval BME280_I2C_ERROR -> Error during I2C communication
     *   \retval BME280_ERROR -> Generic error
     *   \retval BME280_OK -> Success
     */
-    BME280_ErrorCode BME280_SetStandbyTime(BME280* bme280, BME280_TStandby tStandby);
+    BME280_ErrorCode BME280_SetStandbyTime(BME280* bme280, BME280_TStandby t_standby);
     
     /**
     *   \brief Set the value of IIR Filter time constant.
@@ -406,6 +445,10 @@
     *   This function sets the new value for the time constant of the 
     *   IIR filter. For futher information see the documentation
     *   for the register #BME280_CONFIG_REG_ADDR
+    *
+    *   \param[in] bme280 : pointer to device struct
+    *   \param[in] filter : value for IIR filter
+    *
     *   \return Result of function execution 
     *   \retval BME280_I2C_ERROR -> Error during I2C communication
     *   \retval BME280_ERROR -> Generic error
@@ -417,6 +460,9 @@
     *   \brief Enable the SPI interface of the sensor.
     *
     *   This function enables the SPI interface of the sensors.
+    *
+    *   \param[in] bme280 : pointer to device struct
+    *
     *   \return Result of function execution 
     *   \retval BME280_I2C_ERROR -> Error during I2C communication
     *   \retval BME280_ERROR -> Generic error
@@ -426,6 +472,8 @@
     
     /**
     *   \brief Disable the SPI Interface
+    *
+    *   \param[in] bme280 : pointer to device struct
     *
     *   This function disables the SPI interface of the sensors.
     *   \return Result of function execution 

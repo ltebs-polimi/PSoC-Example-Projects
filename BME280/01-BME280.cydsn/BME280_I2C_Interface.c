@@ -64,8 +64,7 @@ BME280_ErrorCode BME280_I2C_Interface_ReadRegisterMulti(uint8_t device_address,
     uint8_t error = I2C_Master_MasterSendStart(device_address,I2C_Master_WRITE_XFER_MODE);
     if (error == I2C_Master_MSTR_NO_ERROR)
     {
-        // Write address of register to be read with the MSB equal to 1
-        register_address |= 0x80;
+        // Write address of register to be read
         error = I2C_Master_MasterWriteByte(register_address);
         if (error == I2C_Master_MSTR_NO_ERROR)
         {

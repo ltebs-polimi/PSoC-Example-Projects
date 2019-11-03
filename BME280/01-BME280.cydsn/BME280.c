@@ -183,32 +183,40 @@ BME280_ErrorCode BME280_Start(BME280* bme280)
     
     // Start I2C Interface
     BME280_I2C_Interface_Start();
-    while(try_counts)
+    // Check null pointer
+    error = BME280_NullPtrCheck(bme280);
+    if ( error == BME280_OK)
     {
-        // Check device presence on I2C bus
-        error = BME280_ReadWhoAmI(&who_am_i_value);
-        if (error == BME280_OK && who_am_i_value == BME280_WHO_AM_I)
+        while(try_counts)
         {
-            bme280->chip_id = BME280_WHO_AM_I;
-            error = BME280_Reset();
-            if ( error == BME280_OK)
+            // Check device presence on I2C bus
+            error = BME280_ReadWhoAmI(&who_am_i_value);
+            if (error == BME280_OK && who_am_i_value == BME280_WHO_AM_I)
             {
-                // Read calibration data
-                error = BME280_ReadCalibrationData(bme280);
+                bme280->chip_id = BME280_WHO_AM_I;
+                error = BME280_Reset(bme280);
+                if ( error == BME280_OK)
+                {
+                    // Read calibration data
+                    error = BME280_ReadCalibrationData(bme280);
+                }
+                break;
             }
-            break;
+            
+            CyDelay(1);
+            --try_counts;
         }
         
-        CyDelay(1);
-        --try_counts;
+        if (!try_counts)
+        {
+            error = BME280_E_DEV_NOT_FOUND;
+        }
     }
-    
-    if (!try_counts)
+    else
     {
-        return BME280_E_DEV_NOT_FOUND;
+        error = BME280_E_NULL_PTR;
     }
-    
-    return BME280_OK;
+    return error;
 }
 BME280_ErrorCode BME280_ReadWhoAmI(uint8_t* who_am_i)
 {
@@ -217,28 +225,48 @@ BME280_ErrorCode BME280_ReadWhoAmI(uint8_t* who_am_i)
                                         BME280_WHO_AM_I_REG_ADDR, who_am_i);
 }
 
-BME280_ErrorCode BME280_Reset(void) 
+BME280_ErrorCode BME280_Reset(BME280* bme280) 
 {
-    BME280_ErrorCode error;
-    uint8_t try_counts = 5;
-    uint8_t status_reg = 0;
+    BME280_ErrorCode error; // Error code returned by function
+    uint8_t try_counts = 5; // Number of trials before returning
+    uint8_t status_reg = 0; // Status register value
     
-    // Write reset value to sensor reset register
-    error = BME280_I2C_Interface_WriteRegister(BME280_I2C_ADDRESS, 
-                        BME280_RESET_REG_ADDR, BME280_SOFT_RESET_COMMAND);
-    if ( error == BME280_OK)
+    // Check for null pointer
+    error = BME280_NullPtrCheck(bme280);
+    if (error == BME280_OK)
     {
-        // If NVM not copied yet, wait for NVM to copy --> Status register
-        do 
+        // Write reset value to sensor reset register
+        error = BME280_I2C_Interface_WriteRegister(BME280_I2C_ADDRESS, 
+                            BME280_RESET_REG_ADDR, BME280_SOFT_RESET_COMMAND);
+        if ( error == BME280_OK)
         {
-            CyDelay(2);
-            error = BME280_I2C_Interface_ReadRegister(BME280_I2C_ADDRESS, 
-                BME280_STATUS_REG_ADDR, &status_reg);
-        } while ((error == BME280_OK) && (try_counts--) && (status_reg & BME280_STATUS_IM_UPDATE));
-        if ( status_reg & BME280_STATUS_IM_UPDATE)
-        {
-            error = BME280_E_NVM_COPY_FAILED;
+            // If NVM not copied yet, wait for NVM to copy --> Status register
+            do 
+            {
+                CyDelay(2);
+                error = BME280_I2C_Interface_ReadRegister(BME280_I2C_ADDRESS, 
+                    BME280_STATUS_REG_ADDR, &status_reg);
+            } while ((error == BME280_OK) && (try_counts--) && (status_reg & BME280_STATUS_IM_UPDATE));
+            
+            if ( status_reg & BME280_STATUS_IM_UPDATE)
+            {
+                error = BME280_E_NVM_COPY_FAILED;
+            }
+            else
+            {
+                // Restore settings
+                BME280_SetHumidityOversampling(bme280, bme280->settings.osr_h);
+                BME280_SetTemperatureOversampling(bme280, bme280->settings.osr_t);
+                BME280_SetPressureOversampling(bme280, bme280->settings.osr_p);
+                BME280_SetIIRFilter(bme280, bme280->settings.filter);
+                BME280_SetStandbyTime(bme280, bme280->settings.stanby_time);
+                BME280_SetMode(bme280, bme280->settings.mode);
+            }
         }
+    }
+    else
+    {
+        error = BME280_E_NULL_PTR;
     }
     return error;
 }
@@ -252,31 +280,63 @@ BME280_ErrorCode BME280_ReadStatusRegister(uint8_t* value)
     
 }
 
+BME280_ErrorCode BME280_GetSensorMode(BME280* bme280)
+{
+    BME280_ErrorCode error;
+    error = BME280_NullPtrCheck(bme280);
+    if ( error == BME280_OK)
+    {
+        uint8_t reg_data;
+        error = BME280_I2C_Interface_ReadRegister(BME280_I2C_ADDRESS,
+            BME280_CONFIG_REG_ADDR,
+            &reg_data);
+        if ( error == BME280_OK)
+        {
+            bme280->settings.mode = reg_data & 0x03;
+        }
+    }
+    return error;
+}
+
 BME280_ErrorCode BME280_SetHumidityOversampling(BME280* bme280, BME280_Oversampling hos)
 {
     BME280_ErrorCode error;
     // Read current register value
     uint8_t reg_data = 0x00;
-    error = BME280_I2C_Interface_ReadRegister(BME280_I2C_ADDRESS,
-        BME280_CTRL_HUM_REG_ADDR, &reg_data);
+    error = BME280_NullPtrCheck(bme280);
     if (error == BME280_OK)
     {
-        // Set new value of register
-        reg_data &= ~0x07;
-        reg_data |= hos;
-        // Write new value to ctrl hum register
-        error = BME280_I2C_Interface_WriteRegister(BME280_I2C_ADDRESS, BME280_CTRL_HUM_REG_ADDR, reg_data);
+        // Check if device is in sleep mode
+        error = BME280_GetSensorMode(bme280);
+        if ( error == BME280_OK && bme280->settings.mode != BME280_SLEEP_MODE)
+        {
+            error = BME280_SetSleepMode(bme280);
+        }
+        
         if ( error == BME280_OK)
         {
-            // Read value of control meas register
-            error = BME280_I2C_Interface_ReadRegister(BME280_I2C_ADDRESS, BME280_CTRL_MEAS_REG_ADDR, &reg_data);
-            if ( error == BME280_OK)
+            error = BME280_I2C_Interface_ReadRegister(BME280_I2C_ADDRESS,
+                BME280_CTRL_HUM_REG_ADDR, &reg_data);
+            if (error == BME280_OK)
             {
-                // Write value of control meas register
-                error = BME280_I2C_Interface_WriteRegister(BME280_I2C_ADDRESS, BME280_CTRL_MEAS_REG_ADDR, reg_data);
-                if (error == BME280_OK)
+                // Set new value of register
+                reg_data &= ~0x07;
+                reg_data |= hos;
+                // Write new value to ctrl hum register
+                error = BME280_I2C_Interface_WriteRegister(BME280_I2C_ADDRESS, BME280_CTRL_HUM_REG_ADDR, reg_data);
+                if ( error == BME280_OK)
                 {
-                    bme280->settings.osr_h = hos;
+                    // Read value of control meas register
+                    error = BME280_I2C_Interface_ReadRegister(BME280_I2C_ADDRESS, BME280_CTRL_MEAS_REG_ADDR, &reg_data);
+                    if ( error == BME280_OK)
+                    {
+                        // Write value of control meas register
+                        error = BME280_I2C_Interface_WriteRegister(BME280_I2C_ADDRESS, BME280_CTRL_MEAS_REG_ADDR, reg_data);
+                        if (error == BME280_OK)
+                        {
+                            bme280->settings.osr_h = hos;
+                        }
+                    }
                 }
             }
         }
@@ -289,21 +349,34 @@ BME280_ErrorCode BME280_SetTemperatureOversampling(BME280* bme280, BME280_Oversa
     BME280_ErrorCode error;
     // Read current register value
     uint8_t reg_data = 0x00;
-    error = BME280_I2C_Interface_ReadRegister(BME280_I2C_ADDRESS, 
-            BME280_CTRL_MEAS_REG_ADDR, &reg_data);
+    error = BME280_NullPtrCheck(bme280);
     if ( error == BME280_OK)
     {
-        // Set new value of register
-        reg_data &= ~0xE0; // Clear bits 7,6,5
-        reg_data |= tos << 5;
-        // Write new value to ctrl meas register
-        error = BME280_I2C_Interface_WriteRegister(BME280_I2C_ADDRESS,
-                            BME280_CTRL_MEAS_REG_ADDR, reg_data);
+        error = BME280_GetSensorMode(bme280);
+        if ( error == BME280_OK && bme280->settings.mode != BME280_SLEEP_MODE)
+        {
+            error = BME280_SetSleepMode(bme280);
+        }
+        
         if ( error == BME280_OK)
         {
-            bme280->settings.osr_t = tos;
-        }
+            error = BME280_I2C_Interface_ReadRegister(BME280_I2C_ADDRESS, 
+                    BME280_CTRL_MEAS_REG_ADDR, &reg_data);
+            if ( error == BME280_OK)
+            {
+                // Set new value of register
+                reg_data &= ~0xE0; // Clear bits 7,6,5
+                reg_data |= tos << 5;
+                // Write new value to ctrl meas register
+                error = BME280_I2C_Interface_WriteRegister(BME280_I2C_ADDRESS,
+                                    BME280_CTRL_MEAS_REG_ADDR, reg_data);
+                if ( error == BME280_OK)
+                {
+                    bme280->settings.osr_t = tos;
+                }
 
+            }
+        }
     }
     return error;
 }
@@ -313,21 +386,34 @@ BME280_ErrorCode BME280_SetPressureOversampling(BME280* bme280, BME280_Oversampl
     BME280_ErrorCode error;
     // Read current register value
     uint8_t reg_data = 0x00;
-    error = BME280_I2C_Interface_ReadRegister(BME280_I2C_ADDRESS, 
-        BME280_CTRL_MEAS_REG_ADDR, &reg_data);
+    error = BME280_NullPtrCheck(bme280);
     if ( error == BME280_OK)
     {
-        // Set new value of register
-        reg_data &= ~0x1C;    // Clear bits 4,3,2
-        reg_data |= pos << 2;  
-        // Write new value to ctrl meas register
-        error = BME280_I2C_Interface_WriteRegister(BME280_I2C_ADDRESS, 
-            BME280_CTRL_MEAS_REG_ADDR, reg_data);
-        if (error == BME280_OK)
+        error = BME280_GetSensorMode(bme280);
+        if ( error == BME280_OK && bme280->settings.mode != BME280_SLEEP_MODE)
         {
-            bme280->settings.osr_p = pos;
+            error = BME280_SetSleepMode(bme280);
+        }
+        if ( error == BME280_OK)
+        {
+            error = BME280_I2C_Interface_ReadRegister(BME280_I2C_ADDRESS, 
+                BME280_CTRL_MEAS_REG_ADDR, &reg_data);
+            if ( error == BME280_OK)
+            {
+                // Set new value of register
+                reg_data &= ~0x1C;    // Clear bits 4,3,2
+                reg_data |= pos << 2;  
+                // Write new value to ctrl meas register
+                error = BME280_I2C_Interface_WriteRegister(BME280_I2C_ADDRESS, 
+                    BME280_CTRL_MEAS_REG_ADDR, reg_data);
+                if (error == BME280_OK)
+                {
+                    bme280->settings.osr_p = pos;
+                }
+            }
         }
     }
+    
     return error;
 }
 
@@ -335,20 +421,23 @@ BME280_ErrorCode BME280_SetMode(BME280* bme280, uint8_t mode)
 {
     BME280_ErrorCode error;
     uint8_t reg_data = 0x00;
-
-    // Read current register value
-    error = BME280_I2C_Interface_ReadRegister(BME280_I2C_ADDRESS, 
-        BME280_CTRL_MEAS_REG_ADDR, &reg_data);
+    error = BME280_NullPtrCheck(bme280);
     if ( error == BME280_OK)
     {
-        // Set new value of register
-        reg_data &= ~0x03; // Bit 1,0
-        reg_data |= mode;
-        // Write new value to ctrl meas register
-        error = BME280_I2C_Interface_WriteRegister(BME280_I2C_ADDRESS, BME280_CTRL_MEAS_REG_ADDR, reg_data);
+        // Read current register value
+        error = BME280_I2C_Interface_ReadRegister(BME280_I2C_ADDRESS, 
+            BME280_CTRL_MEAS_REG_ADDR, &reg_data);
         if ( error == BME280_OK)
         {
-            bme280->settings.mode = mode;
+            // Set new value of register
+            reg_data &= ~0x03; // Bit 1,0
+            reg_data |= mode;
+            // Write new value to ctrl meas register
+            error = BME280_I2C_Interface_WriteRegister(BME280_I2C_ADDRESS, BME280_CTRL_MEAS_REG_ADDR, reg_data);
+            if ( error == BME280_OK)
+            {
+                bme280->settings.mode = mode;
+            }
         }
     }
     return error;
@@ -375,19 +464,31 @@ BME280_ErrorCode BME280_SetNormalMode(BME280* bme280)
 BME280_ErrorCode BME280_SetStandbyTime(BME280* bme280, BME280_TStandby tStandby)
 {
     BME280_ErrorCode error;
-    // Read current register value
-    uint8_t reg_data = 0x00;
-    error = BME280_I2C_Interface_ReadRegister(BME280_I2C_ADDRESS, BME280_CONFIG_REG_ADDR, &reg_data);
+    error = BME280_NullPtrCheck(bme280);
     if ( error == BME280_OK)
     {
-        // Set new value of register
-        reg_data &= ~0xE0;    // Clear bits 7,6,5
-        reg_data |= tStandby << 5;  
-        // Write new value to config register
-        error = BME280_I2C_Interface_WriteRegister(BME280_I2C_ADDRESS, BME280_CONFIG_REG_ADDR, reg_data);
+        error = BME280_GetSensorMode(bme280);
+        if ( error == BME280_OK && bme280->settings.mode != BME280_SLEEP_MODE)
+        {
+            error = BME280_SetSleepMode(bme280);
+        }
         if ( error == BME280_OK)
         {
-            bme280->settings.stanby_time = tStandby;
+            // Read current register value
+            uint8_t reg_data = 0x00;
+            error = BME280_I2C_Interface_ReadRegister(BME280_I2C_ADDRESS, BME280_CONFIG_REG_ADDR, &reg_data);
+            if ( error == BME280_OK)
+            {
+                // Set new value of register
+                reg_data &= ~0xE0;    // Clear bits 7,6,5
+                reg_data |= tStandby << 5;  
+                // Write new value to config register
+                error = BME280_I2C_Interface_WriteRegister(BME280_I2C_ADDRESS, BME280_CONFIG_REG_ADDR, reg_data);
+                if ( error == BME280_OK)
+                {
+                    bme280->settings.stanby_time = tStandby;
+                }
+            }
         }
     }
     return error;
@@ -396,19 +497,31 @@ BME280_ErrorCode BME280_SetStandbyTime(BME280* bme280, BME280_TStandby tStandby)
 BME280_ErrorCode BME280_SetIIRFilter(BME280* bme280, BME280_Filter filter)
 {
     BME280_ErrorCode error;
-    // Read current register value
-    uint8_t reg_data = 0x00;
-    error = BME280_I2C_Interface_ReadRegister(BME280_I2C_ADDRESS, BME280_CONFIG_REG_ADDR, &reg_data);
+    error = BME280_NullPtrCheck(bme280);
     if ( error == BME280_OK)
     {
-        // Set new value of register
-        reg_data &= ~0x1C;    // Clear bits 4,3,2
-        reg_data |= filter << 2;  
-        // Write new value to ctrl hum register
-        error = BME280_I2C_Interface_WriteRegister(BME280_I2C_ADDRESS, BME280_CONFIG_REG_ADDR, reg_data);
+        error = BME280_GetSensorMode(bme280);
+        if ( error == BME280_OK && bme280->settings.mode != BME280_SLEEP_MODE)
+        {
+            error = BME280_SetSleepMode(bme280);
+        }
         if ( error == BME280_OK)
         {
-            bme280->settings.filter = filter;
+            // Read current register value
+            uint8_t reg_data = 0x00;
+            error = BME280_I2C_Interface_ReadRegister(BME280_I2C_ADDRESS, BME280_CONFIG_REG_ADDR, &reg_data);
+            if ( error == BME280_OK)
+            {
+                // Set new value of register
+                reg_data &= ~0x1C;    // Clear bits 4,3,2
+                reg_data |= filter << 2;  
+                // Write new value to ctrl hum register
+                error = BME280_I2C_Interface_WriteRegister(BME280_I2C_ADDRESS, BME280_CONFIG_REG_ADDR, reg_data);
+                if ( error == BME280_OK)
+                {
+                    bme280->settings.filter = filter;
+                }
+            }
         }
     }
     return error;
