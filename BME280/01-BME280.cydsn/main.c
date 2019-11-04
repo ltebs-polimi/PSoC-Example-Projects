@@ -31,13 +31,13 @@ int main(void)
     BME280 bme280;
     BME280_ErrorCode error;
     uint8_t data_array[13] = {0};
+    uint8_t status_reg = 0;
     
     data_array[0] = 0x0A;
     data_array[1] = 0x0D;
     data_array[11] = 0xA0;
     data_array[12] = 0xC0;
 
-    
     error = BME280_Start(&bme280);
     if (error == BME280_OK)
     {
@@ -46,7 +46,7 @@ int main(void)
         BME280_SetHumidityOversampling(&bme280, BME280_OVERSAMPLING_1X);
         BME280_SetTemperatureOversampling(&bme280, BME280_OVERSAMPLING_1X);
         BME280_SetPressureOversampling(&bme280, BME280_OVERSAMPLING_1X);
-        BME280_SetStandbyTime(&bme280, BME280_TSTANBDY_500_MS);
+        BME280_SetStandbyTime(&bme280, BME280_TSTANBDY_62_5_MS);
         BME280_SetNormalMode(&bme280);
 
     }
@@ -58,7 +58,19 @@ int main(void)
     for(;;)
     {
         /* Place your application code here. */
-        
+        do
+        {
+            error = BME280_ReadStatusRegister(&status_reg);
+            if (error == BME280_OK && ( (status_reg & 16) == 0))
+            {
+                break;
+            }
+            else
+            {
+                CyDelay(1);
+            }
+        } while ( (error!=BME280_OK) || (status_reg & 16));
+
         error = BME280_ReadData(&bme280, BME280_ALL_COMP);
         if (error == BME280_OK)
         {
@@ -100,11 +112,8 @@ int main(void)
                     UART_Debug_PutString("BME280_E_NVM_COPY_FAILED\r\n");
                 break;
             }
-            BME280_Reset(&bme280);
-            
+            BME280_Reset(&bme280);    
         }
-        
-        CyDelay(1000);
 
     }
 }
