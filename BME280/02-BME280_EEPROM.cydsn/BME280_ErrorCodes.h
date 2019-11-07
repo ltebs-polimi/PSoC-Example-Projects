@@ -48,7 +48,7 @@
     *   \brief NVM copy error.
     */
     #define BME280_E_NVM_COPY_FAILED    -6
-    
+        
     /**
     *   \brief Typedefs for error codes returned by functions.
     */

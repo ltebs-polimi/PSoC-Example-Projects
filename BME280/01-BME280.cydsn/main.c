@@ -17,6 +17,10 @@
 #include "project.h"
 #include "stdio.h"
 
+#define HEADER_SIZE 2
+#define TAIL_SIZE 2
+#define PACKET_SIZE (HEADER_SIZE + TAIL_SIZE + 4*3) 
+
 int main(void)
 {
     CyGlobalIntEnable; /* Enable global interrupts. */
@@ -30,13 +34,13 @@ int main(void)
     char message[50];
     BME280 bme280;
     BME280_ErrorCode error;
-    uint8_t data_array[13] = {0};
+    uint8_t data_array[PACKET_SIZE] = {0};
     uint8_t status_reg = 0;
     
     data_array[0] = 0x0A;
     data_array[1] = 0x0D;
-    data_array[11] = 0xA0;
-    data_array[12] = 0xC0;
+    data_array[PACKET_SIZE-2] = 0xA0;
+    data_array[PACKET_SIZE-1] = 0xC0;
 
     error = BME280_Start(&bme280);
     if (error == BME280_OK)
@@ -46,7 +50,7 @@ int main(void)
         BME280_SetHumidityOversampling(&bme280, BME280_OVERSAMPLING_1X);
         BME280_SetTemperatureOversampling(&bme280, BME280_OVERSAMPLING_1X);
         BME280_SetPressureOversampling(&bme280, BME280_OVERSAMPLING_1X);
-        BME280_SetStandbyTime(&bme280, BME280_TSTANBDY_62_5_MS);
+        BME280_SetStandbyTime(&bme280, BME280_TSTANBDY_500_MS);
         BME280_SetNormalMode(&bme280);
 
     }
@@ -74,19 +78,22 @@ int main(void)
         error = BME280_ReadData(&bme280, BME280_ALL_COMP);
         if (error == BME280_OK)
         {
-            //sprintf(message, "T: %ld P: %ld H: %ld \r\n", (long)bme280.data.temperature,
-            //    (long)bme280.data.pressure, (long)bme280.data.humidity);
-            //UART_Debug_PutString(message);
-            data_array[2] = ((uint8_t) (bme280.data.pressure >> 16) & 0xFF);
-            data_array[3] = ((uint8_t) (bme280.data.pressure >> 8) & 0xFF);
-            data_array[4] = ((uint8_t) (bme280.data.pressure) & 0xFF);
-            data_array[5] = ((uint8_t) (bme280.data.temperature >> 16) & 0xFF);
-            data_array[6] = ((uint8_t) (bme280.data.temperature >> 8) & 0xFF);
-            data_array[7] = ((uint8_t) (bme280.data.temperature) & 0xFF);
-            data_array[8] = ((uint8_t) (bme280.data.humidity >> 16) & 0xFF);
-            data_array[9] = ((uint8_t) (bme280.data.humidity >> 8) & 0xFF);
-            data_array[10] = ((uint8_t) (bme280.data.humidity) & 0xFF);
-            UART_Debug_PutArray(data_array, 13);
+            // Pressure
+            data_array[2] = ((uint8_t) (bme280.data.pressure >> 24) & 0xFF);
+            data_array[3] = ((uint8_t) (bme280.data.pressure >> 16) & 0xFF);
+            data_array[4] = ((uint8_t) (bme280.data.pressure >> 8) & 0xFF);
+            data_array[5] = ((uint8_t) (bme280.data.pressure) & 0xFF);
+            // Temperature
+            data_array[6] = ((uint8_t) (bme280.data.temperature >> 24) & 0xFF);
+            data_array[7] = ((uint8_t) (bme280.data.temperature >> 16) & 0xFF);
+            data_array[8] = ((uint8_t) (bme280.data.temperature >> 8) & 0xFF);
+            data_array[9] = ((uint8_t) (bme280.data.temperature) & 0xFF);
+            // Humidity
+            data_array[10] = ((uint8_t) (bme280.data.humidity >> 24) & 0xFF);
+            data_array[11] = ((uint8_t) (bme280.data.humidity >> 16) & 0xFF);
+            data_array[12] = ((uint8_t) (bme280.data.humidity >> 8) & 0xFF);
+            data_array[13] = ((uint8_t) (bme280.data.humidity) & 0xFF);
+            UART_Debug_PutArray(data_array, PACKET_SIZE);
         }
         else
         {

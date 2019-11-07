@@ -1,44 +1,22 @@
 /**
 *   \file BME280_EEPROM.h
-*   
-*   \brief Header file with macros and function declarations
-*          to be used for EEPROM reading and writing operations.
 *
-*   This header file contains macros and function declarations
-*   that allows to interface with the embedded EEPROM memory of
-*   PSoC 5LP devices.
+*   \brief Header file with function declarations to write BME280 data to EEPROM.
 *
 *   \author Davide Marzorati
-*   \date November 4, 2019
+*   \date November 7, 2019
 */
+#ifndef __BME_EEPROM_H
+    #define __BME_EEPROM_H
 
-#ifndef __BME280_EEPROM_H
-    #define __BME280_EEPROM_H
-
-    #include "cytypes.h"
+    #include "BME280.h"
+    #include "EEPROM_ErrorCodes.h"
     
-    /**
-    *   \brief Address in the EEPROM memory of the header.
-    */
-    #ifndef BME280_EEPROM_HEAD_START_ADDR
-        #define BME280_EEPROM_HEAD_START_ADDR 0x00
-    #endif
+    EEPROM_ErrorCode BME280_EEPROM_Start(void);
     
-    /**
-    *   \brief Header length in bytes.
-    */
-    #ifndef BME280_EEPROM_HEAD_LENGTH
-        #define BME280_EEPROM_HEAD_LENGHT 0x06
-    #endif
+    EEPROM_ErrorCode BME280_EEPROM_Stop(void);
     
-    #define BME280_EEPROM_OK 0
-    
-    #define BME280_EEPROM_E_HEAD_CHK_FAIL -1
-    
-    typedef int8_t BME280_EEPROM_ErrorCode;
-    
-    BME280_EEPROM_ErrorCode BME280_EEPROM_Start();
-
+    EEPROM_ErrorCode BME280_EEPROM_WriteData(BME280* bme280);
     
 #endif
 
