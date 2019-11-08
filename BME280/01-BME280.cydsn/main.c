@@ -25,7 +25,6 @@ int main(void)
 {
     CyGlobalIntEnable; /* Enable global interrupts. */
     UART_Debug_Start();
-    I2C_Master_Start();
     
     UART_Debug_PutString("************************\r\n");
     UART_Debug_PutString("          BME280        \r\n");
