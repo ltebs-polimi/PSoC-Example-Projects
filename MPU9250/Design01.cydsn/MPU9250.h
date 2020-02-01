@@ -170,7 +170,7 @@
     * @param[out] mag: magnetometer raw values (xH, xL, yH, yL, zH, zL).
     *
     */
-    void MPU9250_ReadMag(uint16_t* mag);
+    void MPU9250_ReadMag(int16_t* mag);
     
      /**
     * @brief Read magnetometer raw values.
@@ -217,8 +217,8 @@
     void MPU9250_ReadMag(void);
     */
     
-    void MPU9250_ReadSelfTestGyro(uint8_t* self_test_gyro);
-    void MPU9250_ReadSelfTestAcc(uint8_t* self_test_acc);
+    void MPU9250_ReadSelfTestGyro(int16_t* self_test_gyro);
+    void MPU9250_ReadSelfTestAcc(int16_t* self_test_acc);
     
     /**
     * @brief Perform self test of accelerometer and gyroscope.
