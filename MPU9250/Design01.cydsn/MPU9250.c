@@ -175,7 +175,7 @@ void MPU9250_ReadAccGyroRaw(uint8_t* data) {
     MPU9250_I2C_ReadMulti(MPU9250_I2C_ADDRESS, MPU9250_GYRO_XOUT_H_REG, data + 6, 6);
 }
 
-void MPU9250_ReadMag(uint16_t* mag) {
+void MPU9250_ReadMag(int16_t* mag) {
     
     uint8_t temp[6];
     // Get RAW data
@@ -192,7 +192,7 @@ void MPU9250_ReadMagRaw(uint8_t* mag) {
     MPU9250_I2C_ReadMulti(AK8963_I2C_ADDRESS, MPU9250_MAG_XOUT_H_REG, mag, 6);
 }
 
-void MPU9250_ReadSelfTestGyro(uint8_t* self_test_gyro) {
+void MPU9250_ReadSelfTestGyro(int16_t* self_test_gyro) {
     uint8_t temp[6];
     
     MPU9250_I2C_ReadMulti(MPU9250_I2C_ADDRESS, MPU9250_SELF_TEST_X_GYRO_REG, temp, 6);
@@ -201,7 +201,7 @@ void MPU9250_ReadSelfTestGyro(uint8_t* self_test_gyro) {
     self_test_gyro[2] = ( temp[2] << 8) | ( temp[5] & 0xFF);
 }
 
-void MPU9250_ReadSelfTestAcc(uint8_t* self_test_acc) {
+void MPU9250_ReadSelfTestAcc(int16_t* self_test_acc) {
     uint8_t temp[6];
     
     MPU9250_I2C_ReadMulti(MPU9250_I2C_ADDRESS, MPU9250_SELF_TEST_X_ACCEL_REG, temp, 6);
@@ -327,8 +327,8 @@ void MPU9250_SelfTest(float* deviation) {
     ST_Response[5] = ST_Gyro[2] - Gyro[2];
     
     // Get values stored in the device for self test
-    uint8_t ST_AccStored[3];
-    uint8_t ST_GyroStored[3];
+    int16_t ST_AccStored[3];
+    int16_t ST_GyroStored[3];
     
     MPU9250_ReadSelfTestAcc(ST_AccStored);
     MPU9250_ReadSelfTestGyro(ST_GyroStored);
