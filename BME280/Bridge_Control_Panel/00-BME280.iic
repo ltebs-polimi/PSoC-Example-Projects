@@ -1,0 +1,35 @@
+; ========================== BME280 Bridge Control Panel file =======================
+; This file allows you to set up the bridge control panel in order to retrieve 
+; correctly the data from the PSoC device and see the pressure, temperature, and 
+; humidity data.
+;rx8 [h=0A 0D] @3press @2press @1press @0press @3temp @2temp @1temp @0temp @3hum @2hum @1hum @0hum [t=A0 C0]
+
+;-------------------------------------
+; READ CHIP ID (Expected Value: 0x60)
+;-------------------------------------
+
+w 76 D0 p
+r 76 x p
+
+;-------------------------------------
+; ENTER SLEEP MODE
+;------------------------------------
+w 76 F4 00 p
+r 76 x p
+
+;-------------------------------------
+; SET HUMIDITY OSR
+;-------------------------------------
+w 76 F2 01 p
+r 76 x p
+
+;-------------------------------------
+; SET TEMP AND PRESS OSR + NORMAL MODE
+;-------------------------------------
+w 76 F4 27 p
+r 76 x p
+
+;-------------------------------------
+; READ DATA
+;-------------------------------------
+w 76 F8 r 76 @2Press @1Press @0Press @2Temp @1Temp @0Temp @1Hum @0Hum

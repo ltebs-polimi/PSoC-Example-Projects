@@ -133,7 +133,7 @@ BME280_ErrorCode BME280_I2C_Interface_WriteRegisterMulti(uint8_t device_address,
         {
             // Continue writing until we have data to write
             uint8_t counter = register_count;
-            while(counter >= 0)
+            while(counter > 0)
             {
                 error = I2C_Master_MasterWriteByte(data[register_count-counter]);
                 if (error != I2C_Master_MSTR_NO_ERROR)
