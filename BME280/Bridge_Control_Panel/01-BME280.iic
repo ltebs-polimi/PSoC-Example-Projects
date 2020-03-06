@@ -2,5 +2,5 @@
 ; This file allows you to set up the bridge control panel in order to retrieve 
 ; correctly the data from the PSoC device and see the pressure, temperature, and 
 ; humidity data.
-rx8 [h=0A 0D] @2press @1press @0press @2temp @1temp @0temp @2hum @1hum @0hum [t=A0 C0]
+rx8 [h=0A 0D] @3press @2press @1press @0press @3temp @2temp @1temp @0temp @3hum @2hum @1hum @0hum [t=A0 C0]
 
