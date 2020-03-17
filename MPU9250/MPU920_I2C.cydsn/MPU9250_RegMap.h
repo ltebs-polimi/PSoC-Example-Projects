@@ -335,6 +335,34 @@
     
     /**
     * @brief Low Power Accelerometer ODR Control.
+    *
+    * The lowest four bits of this register are used to configure the accelerometer output 
+    * data rate in low power mode.
+    *
+    * | BIT | NAME | FUNCTION |
+    * |:-----:|------|---------| 
+    * | [7:4] | - | Reserved |
+    * | [3:0] | lposc_clksel[3:0] | Sets the frequency of waking up the chip. See table below.|
+    *
+    * The bits set the frequency of waking up the chip to take a sample of accel data - the lower power
+    * accel Output Data Rate.
+    *
+    * | Lpsoc_clksel | Output Frequency (Hz) |
+    * |:------------:|:---------------------:|
+    * | 0  | 0.24  |
+    * | 1  | 0.49  |
+    * | 2  | 0.98  |
+    * | 3  | 1.95  |
+    * | 4  | 3.91  |
+    * | 5  | 7.81  |
+    * | 6  | 15.63 |
+    * | 7  | 31.25 |
+    * | 8  | 62.50 |
+    * | 9  | 125   |
+    * | 10 | 250   |
+    * | 11 | 500   |
+    * | 12 - 15 | Reserved |
+    
     */
     #ifndef MPU9250_LP_ACCEL_ODR_REG
         #define MPU9250_LP_ACCEL_ODR_REG 0x1E
@@ -343,7 +371,10 @@
     /**
     * @brief Wake-on Motion Threshold register.
     *
-    * For more details on how to configure the Wake-on-Motion interrupt, please refer to section 5 in the MPU-9250 Product Specification document.
+    * This register holds the threshold value for the Wake on Motion Interrupt
+    * for accel x/y/z axes. LSB = 4 mg. Range is 0mg to 1020mg.
+    * For more details on how to configure the Wake-on-Motion interrupt,
+    * please refer to section 5 in the MPU-9250 Product Specification document.
     */
     #ifndef MPU9250_WOM_THR_REG
         #define MPU9250_WOM_THR_REG 0x1F
@@ -354,6 +385,35 @@
     *
     * *Note*: For further information regarding the association of EXT_SENS_DATA registers to particular
     * slave devices, please refer to Registers 73 to 96. 
+    *
+    * - [7] - TEMP_OUT | 1 - Write TEMP_OUT_H and TEMP_OUT_L to the FIFO at the sample rate; If enabled
+    *                        buffering of data occurs even if data path is in standy.
+    *                    0 - Function is disabled
+    * - [6] - GYRO_XOUT | 1 - Write GYRO_XOUT_H and GYRO_XOUT_L to the FIFO at the sample rate; If enabled
+    *                        buffering of data occurs even if data path is in standy.
+    *                     0 - Function is disabled
+    * - [5] - GYRO_YOUT | 1 - Write GYRO_YOUT_H and GYRO_YOUT_L to the FIFO at the sample rate; If enabled
+    *                        buffering of data occurs even if data path is in standy.
+    *                     0 - Function is disabled
+    * - [4] - GYRO_ZOUT | 1 - Write GYRO_ZOUT_H and GYRO_ZOUT_L to the FIFO at the sample rate; If enabled
+    *                        buffering of data occurs even if data path is in standy.
+    *                     0 - Function is disabled
+    * - [3] - ACCEL | 1 - Write ACCEL_XOUT_H, ACCEL_XOUT_L, ACCEL_YOU_H, ACCEL_YOUT_L, ACCEL_ZOUT_H,
+    *                     and ACCEL_ZOUT_L to the FIFO at the sample rate; If enabled
+    *                     buffering of data occurs even if data path is in standy.
+    *                 0 - Function is disabled
+    * - [2] - SLV_2 | 1 - Write EXT_SENS_DATA registers associated to SLV_2 (as determined by I2C_SLV0_CTRL,
+    *                     I2C_SLV1_CTROL, and I2C_SLV2_CTRL) to the FIFO at the sample rate; If enabled
+    *                     buffering of data occurs even if data path is in standy.
+    *                 0 - Function is disabled
+    * - [1] - SLV_1 | 1 - Write EXT_SENS_DATA registers associated to SLV_1 (as determined by I2C_SLV0_CTRL,
+    *                     I2C_SLV1_CTROL, and I2C_SLV2_CTRL) to the FIFO at the sample rate; If enabled
+    *                     buffering of data occurs even if data path is in standy.
+    *                 0 - Function is disabled
+    * - [0] - SLV_0 | 1 - Write EXT_SENS_DATA registers associated to SLV_0 (as determined by I2C_SLV0_CTRL,
+    *                     I2C_SLV1_CTROL, and I2C_SLV2_CTRL) to the FIFO at the sample rate; If enabled
+    *                     buffering of data occurs even if data path is in standy.
+    *                 0 - Function is disabled
     */
     #ifndef MPU9250_FIFO_EN_REG
         #define MPU9250_FIFO_EN_REG 0x23
@@ -364,6 +424,39 @@
     *
     * *Note*: For further information regarding the association of EXT_SENS_DATA registers to particular
     * slave devices, please refer to Registers 73 to 96. 
+    *
+    * - [7] - MULT_MST_EN: Enables multi-master capability. When disabled, clocking to the I2C_MST_IF
+    *                      can be disabled when not in use and the logic to detect lost arbitration is
+    *                      disabled.
+    * - [6] - WAIT_FOR_ES: Delays the data ready interrupt until external sensor data is loaded. If
+    *        I2C_MST_IF is disabled, the interrupt will still occur.
+    * - [5] - SLV_3_FIFO_EN: 1 write EXT_SENS_DATA registers associated to SLV_3 (as determined by I2C_SLV0_CTRL,
+    *                        I2C_SLV1_CTRL, and I2C_SLV2_CTRL) to the FIFO at the sample rate;
+    *                        0 function is disabled
+    * - [4] - I2C_MST_P_NSR: This bit controls the I2C Master's transition from one slave read to the next slave
+    *                        read. If 0, there is a restart between reads. If 1, there is a stop between reads.
+    * - [3:0] - I2C_MST_CLK[3:0]: I2C_MST_CLK is a 4 bit unsigned value which configures a divider on the MPU-9250
+    *                             internal 8MHz clock. It sets the I2C master clock speed according to the 
+    *                             following table:
+    *
+    * | I2C_MST_CLK | I2C Master Clock Speed | 8 MHz Clock Divider |
+    * |:-----------:|:----------------------:|:-------------------:|
+    * | 0 | 348 kHz | 23 |
+    * | 1 | 333 kHz | 24 |
+    * | 2 | 320 kHz | 25 |
+    * | 3 | 308 kHz | 26 |
+    * | 4 | 296 kHz | 27 |
+    * | 5 | 286 kHz | 28 |
+    * | 6 | 276 kHz | 29 |
+    * | 7 | 267 kHz | 30 |
+    * | 8 | 258 kHz | 31 |
+    * | 9 | 500 kHz | 16 |
+    * | 10 | 471 kHz | 17 |
+    * | 11 | 444 kHz | 18 |
+    * | 12 | 421 kHz | 19 |
+    * | 13 | 400 kHz | 20 |
+    * | 14 | 381 kHz | 21 |
+    * | 15 | 364 kHz | 22 |
     */
     #ifndef MPU9250_I2C_MST_CTRL_REG
         #define MPU9250_I2C_MST_CTRL_REG 0x24
@@ -372,6 +465,10 @@
     /**
     * @brief I2C Slave 0 Address register.
     *
+    * | BIT | NAME | FUNCTION |
+    * |:-----:|------|---------| 
+    * | [7] | I2C_SLV0_RNW | 1 if transfer is a read, 0 if transfer is a write |
+    * | [6:0] | I2C_ID_0[6:0] | Physical address of I2C slave 0 |
     */
     #ifndef MPU9250_I2C_SLV0_ADDR_REG
         #define MPU9250_I2C_SLV0_ADDR_REG 0x25
@@ -380,6 +477,9 @@
     /**
     * @brief I2C Slave 0 Register register.
     *
+    * | BIT | NAME | FUNCTION |
+    * |:-----:|------|---------| 
+    * | [7:0] | I2C_SLV0_REG[7:0] | I2C slave register address from where to begin data transfer |
     */
     #ifndef MPU9250_I2C_SLV0_REG_REG
         #define MPU9250_I2C_SLV0_REG_REG 0x26
@@ -945,6 +1045,7 @@
 
     /*******************************************************/
     /************   MAGNETOMETER REGISTRER MAP  ************/
+    /*******************************************************/
     /**
     * @brief Magnetometer Device ID registrer.
     */
